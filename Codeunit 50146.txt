@@ -1,0 +1,420 @@
+OBJECT Codeunit 50146 Pos Functions
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05.09.12;
+    Time=17:23:31;
+    Modified=Yes;
+    Version List=DP014;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+            MESSAGE(GetNewPicCode);
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      UnMgt@1000000000 : Codeunit 50112;
+
+    PROCEDURE CheckRemain@1000000000(pRec@1000000000 : Record 36);
+    VAR
+      SalesLine@1000000001 : Record 37;
+      Remain@1000000002 : Integer;
+      ReservedQty@1000000003 : Integer;
+      AvaibleQTy@1000000004 : Integer;
+      SoldNoPost@1000000005 : Integer;
+      ConfirmText@1000000006 : Text[250];
+    BEGIN
+      SalesLine.SETRANGE("Document Type",pRec."Document Type");
+      SalesLine.SETRANGE("Document No.",pRec."No.");
+      SalesLine.SETRANGE(Type,SalesLine.Type::Item);
+
+      IF SalesLine.FINDSET THEN
+        REPEAT
+          AvaibleQTy:=UnMgt.GetAvaibleQty(SalesLine."No.",SalesLine."Variant Code",pRec."Location Code",TODAY);
+          IF AvaibleQTy<SalesLine.Quantity THEN BEGIN
+
+            Remain:=UnMgt.GetRemain(SalesLine."No.",SalesLine."Variant Code",pRec."Location Code",TODAY);
+            ReservedQty:=UnMgt.GetReservQty4Doc(SalesLine."No.",SalesLine."Variant Code",pRec."No.",pRec."Location Code",TODAY);
+            SoldNoPost:=UnMgt.GetSoldNoPostQty(SalesLine."No.",SalesLine."Variant Code",pRec."Location Code",TODAY);
+            ConfirmText:=STRSUBSTNO('Недостаточное кол-во товара\\Товар %1 %2\\'+
+                                    'Остаток                            %3\'+
+                                    'В резерве                         %4\'+
+                                    'Продано, не учтено        %5\\'+
+                                    'ВСЁ РАВНО УЧЕСТЬ ПРОДАЖУ ?',
+                                   SalesLine."No.",
+                                   SalesLine."Variant Code",
+                                   Remain,
+                                   ReservedQty,
+                                   SoldNoPost);
+            IF NOT CONFIRM(ConfirmText,FALSE) THEN
+              ERROR('');
+          END;
+        UNTIL SalesLine.NEXT=0;
+    END;
+
+    PROCEDURE CheckCorrect@1000000003(pRec@1000000000 : Record 36);
+    VAR
+      SalesLine@1000000001 : Record 37;
+      Remain@1000000002 : Integer;
+      ReservedQty@1000000003 : Integer;
+      ResponCenter@1000000004 : Record 5714;
+    BEGIN
+      pRec.TESTFIELD("Salesperson Code");
+      pRec.TESTFIELD("Responsibility Center");
+      pRec.TESTFIELD("Location Code");
+
+
+      IF pRec."Responsibility Center"='Ф-КИЕВ-ОПТ' THEN
+        pRec.TESTFIELD("Posting Date",TODAY);
+
+
+      ResponCenter.GET(pRec."Responsibility Center");
+
+      IF ResponCenter."Order Type"=ResponCenter."Order Type"::Store THEN
+        IF pRec."Location Code"<>ResponCenter."Location Code" THEN
+          ERROR('Некорректная комбинация.\Дистр. Центр %1 + Код склада %2',
+                 pRec."Responsibility Center",pRec."Location Code");
+
+      // ----------------- строки -----------------------
+      SalesLine.SETRANGE("Document Type",pRec."Document Type");
+      SalesLine.SETRANGE("Document No.",pRec."No.");
+      IF SalesLine.FINDSET THEN
+        REPEAT
+          IF SalesLine.Type=SalesLine.Type::Item  THEN BEGIN
+            SalesLine.TESTFIELD("Variant Code");
+
+            IF pRec."Sale Discount"<>0 THEN
+              IF NOT ItemIsGift(SalesLine."No.") THEN
+                IF pRec."Location Code"<>'1-БРИТАНКА' THEN
+                  SalesLine.TESTFIELD("Line Discount %",pRec."Sale Discount");
+          END;
+
+          IF SalesLine.Type<>SalesLine.Type::" " THEN  BEGIN
+
+            SalesLine.TESTFIELD(Quantity);
+            IF NOT ItemIsGift(SalesLine."No.") THEN
+              SalesLine.TESTFIELD("Unit Price");
+
+          END;
+
+        UNTIL SalesLine.NEXT=0;
+    END;
+
+    PROCEDURE CheckLines@1000000006(pRec@1000000000 : Record 36);
+    BEGIN
+      CheckCorrect(pRec);
+      CheckRemain(pRec);    // не даем продать в минус
+    END;
+
+    PROCEDURE GetEmployee@1000000001(pCardNo@1000000000 : Code[10]) : Code[10];
+    VAR
+      Contact@1000000001 : Record 5050;
+    BEGIN
+      CLEAR(Contact);
+      Contact.SETRANGE("Admission Card No.",pCardNo);
+      IF Contact.FINDSET THEN
+        EXIT(Contact."No.");
+
+      EXIT('');
+    END;
+
+    PROCEDURE BatchPostingEnabled@1000000002(pLocation@1000000000 : Code[250]) : Boolean;
+    VAR
+      Location@1000000001 : Record 14;
+    BEGIN
+
+      IF STRLEN(pLocation)>10 THEN
+        EXIT(FALSE);
+
+      IF Location.GET(pLocation) THEN
+        EXIT(Location."Batch Posting");
+
+      EXIT(FALSE);
+    END;
+
+    PROCEDURE SetApllyEntry2Return@1000000004(pOrderNo@1000000000 : Code[20]);
+    VAR
+      SalesHeader@1000000001 : Record 36;
+      SalesInvHeader@1000000002 : Record 112;
+      SalesInvLine@1000000003 : Record 113;
+      SalesLine@1000000004 : Record 37;
+      VAL@1000000005 : Record 5802;
+      ILE@1000000006 : Record 32;
+      SalesLine2@1000000007 : Record 37;
+    BEGIN
+      SalesHeader.GET(SalesHeader."Document Type"::"Return Order",pOrderNo);
+
+      SalesInvHeader.SETRANGE("Order No.",SalesHeader."External Document No.");
+      IF NOT SalesInvHeader.FINDFIRST THEN
+        IF NOT SalesInvHeader.GET(SalesHeader."External Document No.") THEN
+          ERROR('Возврат %1 сделан к продаже %2.\Данная продажа не найдена в учтенных документах',pOrderNo,
+                SalesHeader."External Document No.");
+
+
+      SalesLine.SETRANGE("Document Type",SalesHeader."Document Type");
+      SalesLine.SETRANGE(SalesLine."Document No.",SalesHeader."No.");
+      SalesLine.SETRANGE(Type,SalesLine.Type::Item);
+      SalesLine.SETRANGE("Appl.-from Item Entry",0);
+
+      IF SalesLine.FINDSET(TRUE,FALSE) THEN
+        REPEAT
+
+          SalesInvLine.SETRANGE("Document No.",SalesInvHeader."No.");
+          SalesInvLine.SETRANGE(Type,SalesInvLine.Type::Item);
+          SalesInvLine.SETRANGE("No.",SalesLine."No.");
+          SalesInvLine.SETRANGE("Variant Code",SalesLine."Variant Code");
+
+          IF SalesInvLine.FINDFIRST THEN BEGIN
+            VAL.SETCURRENTKEY("Item No.","Posting Date","Document No.");
+            VAL.SETRANGE("Item No.",SalesInvLine."No.");
+            VAL.SETRANGE("Posting Date",SalesInvLine."Posting Date");
+            VAL.SETRANGE("Document No.",SalesInvLine."Document No.");
+            VAL.SETRANGE("Variant Code",SalesInvLine."Variant Code");
+            VAL.FINDFIRST;
+            ILE.GET(VAL."Item Ledger Entry No.");
+
+            IF ABS(ILE."Shipped Qty. Not Returned")<SalesLine.Quantity THEN
+              ERROR('Возврат %1 привязан к продаже %2, в которой товар %3 уже был вовзращен другим возвратом',
+                    pOrderNo,SalesHeader."External Document No.",UnMgt.FullItemDescRU(SalesLine."No.",SalesLine."Variant Code"));
+
+
+            SalesLine2:= SalesLine;
+            SalesLine2.VALIDATE("Appl.-from Item Entry",ILE."Entry No.");
+            SalesLine2.MODIFY;
+          END;
+
+        UNTIL SalesLine.NEXT=0;
+    END;
+
+    PROCEDURE GetFRPaymentType@1000000014(pRespCenter@1000000002 : Code[10];pPayCode@1000000000 : Code[10]) : Integer;
+    VAR
+      StoreTenderType@1000000001 : Record 50061;
+    BEGIN
+      StoreTenderType.GET(pRespCenter,pPayCode);
+      EXIT(StoreTenderType."FR Payment Type");
+    END;
+
+    PROCEDURE GetReturnPayMethod@1000000005(pRespCenter@1000000001 : Code[10];pSalesPayMethod@1000000000 : Code[10]) : Code[10];
+    VAR
+      StoreTenderType@1000000002 : Record 50061;
+      Location@1000000003 : Record 14;
+    BEGIN
+      // DP для наличных отдельный тип воззрата, для отсальных тот же самый
+
+      IF NOT StoreTenderType.GET(pRespCenter,pSalesPayMethod) THEN
+        ERROR('Тип оплат %1 не разрешен в магазине %2',pRespCenter,pSalesPayMethod);
+
+
+      Location.GET(UnMgt.LocationByStore(pRespCenter));
+      IF Location."Cash Payment Method"=pSalesPayMethod THEN
+        EXIT(Location."Return Cash Payment Method");
+
+      EXIT(pSalesPayMethod);
+    END;
+
+    PROCEDURE CheckOrderUpdate@1000000007(pDocType@1000000000 : Integer;pOrderNo@1000000001 : Code[20]);
+    VAR
+      SalesHeader@1000000002 : Record 36;
+      CashHeader@1000000003 : Record 50024;
+    BEGIN
+      IF SalesHeader.GET(pDocType, pOrderNo) THEN
+        IF  SalesHeader."Sale No."<>'' THEN
+          IF CashHeader.GET(pDocType,SalesHeader."Sale No.") THEN
+            IF CashHeader.Printed THEN
+              ERROR('Не возможно изменить данный заказ т.к. по нему был ФР чек %1',SalesHeader."Sale No.");
+    END;
+
+    PROCEDURE PostReturnCash@1101489003(pRec@1000000003 : Record 36);
+    VAR
+      CashOrderForm@1101489001 : Form 50098;
+      GLLine@1101489000 : Record 81;
+      LebedevSetup@1101489002 : Record 50001;
+      RespCenter@1101489003 : Record 5714;
+      GenJourBatch@1101489004 : Record 232;
+      BankAccount@1101489005 : Record 270;
+      UserSetup@1000000001 : Record 91;
+      LastLine@1000000000 : Integer;
+      CompanyInformation@1000000002 : Record 79;
+    BEGIN
+      UserSetup.GET(USERID);
+      UserSetup.TESTFIELD("Salespers./Purch. Code");
+      UserSetup.TESTFIELD(UserSetup."Sales Resp. Ctr. Filter");
+      RespCenter.GET(UserSetup."Sales Resp. Ctr. Filter");
+      RespCenter.TESTFIELD("Journal Template Name");
+      RespCenter.TESTFIELD("Journal Batch Name");
+      GLLine.SETRANGE("Journal Template Name", RespCenter."Journal Template Name");
+      GLLine.SETRANGE("Journal Batch Name",  RespCenter."Journal Batch Name");
+      IF GLLine.FINDSET THEN
+        GLLine.DELETEALL;
+
+      GLLine.INIT;
+      GLLine."Journal Template Name" := RespCenter."Journal Template Name";
+      GLLine."Journal Batch Name" := RespCenter."Journal Batch Name";
+      GLLine."Line No." := 10000;
+      GLLine.SetUpNewLine(GLLine,0,FALSE);
+      GLLine."Document Type" := GLLine."Document Type"::Refund;
+      GLLine."Posting Date" := TODAY;
+      GLLine."Account Type" := GLLine."Account Type"::Customer;
+
+      LebedevSetup.GET;
+      LebedevSetup.TESTFIELD(DCNFWS);
+      GLLine.VALIDATE("Account No.", LebedevSetup.DCNFWS);
+      GLLine."Bank Payment Type" := GLLine."Bank Payment Type"::"Computer Check";
+      GLLine."Responsibility Center" := UserSetup."Sales Resp. Ctr. Filter";
+      GLLine."Salespers./Purch. Code" := UserSetup."Salespers./Purch. Code";
+      GenJourBatch.GET(RespCenter."Journal Template Name",RespCenter."Journal Batch Name");
+      GenJourBatch.TESTFIELD("Bal. Account Type", GenJourBatch."Bal. Account Type"::"Bank Account");
+      GenJourBatch.TESTFIELD("Bal. Account No.");
+      BankAccount.GET(GenJourBatch."Bal. Account No.");
+      BankAccount.TESTFIELD("Legal Person Code");
+      GLLine."Legal Person Code" := BankAccount."Legal Person Code";
+      LebedevSetup.TESTFIELD(RRRC);
+      GLLine."Reason Code" := LebedevSetup.RRRC;
+      GLLine.Description := pRec."External Document No.";
+      GLLine."Text 2" := pRec."Shipping Full Address" ;
+      GLLine.VALIDATE("Debit Amount",-pRec.GetAmount);
+      GLLine.INSERT(TRUE);
+
+      // -----------------------------
+
+      {
+      CompanyInformation.GET;
+      BankAccount.INIT;
+      BankAccNo := '';
+      TESTFIELD("Bal. Account Type","Bal. Account Type"::"Bank Account");
+      IF BankAccount.GET("Bal. Account No.") THEN BEGIN
+        BankAccount.TESTFIELD("Account Type",BankAccount."Account Type"::"Cash Account");
+        IF BankAccPostingGr.GET(BankAccount."Bank Acc. Posting Group") THEN
+          BankAccNo := BankAccPostingGr."G/L Bank Account No.";
+      END;
+      }
+
+
+
+
+      {
+      CorrAccNo := '';
+
+      IF "Account No." <> '' THEN  begin
+        Cust.GET("Account No.");
+        CustPostGroup.GET("Posting Group");
+        CustPostGroup.TESTFIELD("Receivables Account");
+        CorrAccNo := CustPostGroup."Receivables Account";
+      END;
+      }
+      // -----------------------------
+      EXIT;
+      CashOrderForm.SETRECORD(GLLine);
+      CashOrderForm.RUN;
+    END;
+
+    PROCEDURE ItemIsGift@1000000008(pItemNo@1000000000 : Code[10]) : Boolean;
+    BEGIN
+
+      IF pItemNo IN ['IT01275','IT01276','IT01277'] THEN
+        EXIT(TRUE);
+
+      EXIT(FALSE);
+    END;
+
+    PROCEDURE GetEmpByHID@1000000009(pHID@1000000000 : Text[30]) : Code[10];
+    VAR
+      Contact@1000000001 : Record 5050;
+    BEGIN
+      Contact.SETFILTER("HID Card ID",'%1|0%1',pHID);
+      CASE Contact.COUNT OF
+        0 : EXIT('-');
+
+        1 : BEGIN
+          Contact.FINDFIRST;
+          EXIT(Contact."No.") ;
+        END;
+
+        2..1000 : BEGIN
+          Contact.SETRANGE(Blocked,FALSE);
+          IF Contact.FINDFIRST THEN
+            EXIT(Contact."No.") ;
+        END;
+
+      END;
+    END;
+
+    PROCEDURE NeedChangePicture@1000000010() : Boolean;
+    VAR
+      StorePos@1000000000 : Record 50062;
+    BEGIN
+      StorePos.SETRANGE("Store No.",UnMgt.GetCurrStore);
+      IF NOT StorePos.FINDSET THEN
+        EXIT(FALSE);
+
+      IF (TODAY-StorePos."Picture Last Change">=1) THEN
+        EXIT(TRUE);
+
+      EXIT(FALSE);
+    END;
+
+    PROCEDURE GetNewPicCode@1000000017() : Code[10];
+    VAR
+      StorePos@1000000000 : Record 50062;
+      FRPic@1000000001 : Record 50079;
+    BEGIN
+      StorePos.SETRANGE("Store No.",UnMgt.GetCurrStore);
+      IF NOT StorePos.FINDSET THEN
+        EXIT('-');
+
+      IF  StorePos."Current Picture"='' THEN
+        EXIT('PIC-000001');
+
+      FRPic.SETFILTER(Code,'>%1',StorePos."Current Picture");
+
+      IF FRPic.ISEMPTY THEN  // текущая картинка с самым большим номером
+        FRPic.SETFILTER(Code,'<>%1',StorePos."Current Picture");
+
+      IF FRPic.FINDSET THEN
+        REPEAT
+          FRPic.CALCFIELDS(Picture);
+          IF FRPic.Picture.HASVALUE THEN
+            EXIT(FRPic.Code);
+        UNTIL FRPic.NEXT=0;
+
+
+      EXIT(StorePos."Current Picture");
+    END;
+
+    PROCEDURE UpdateCurrPicture@1000000011(pNewPicCode@1000000001 : Code[10];pFirstNumber@1000000002 : Integer;pLastNumber@1000000003 : Integer);
+    VAR
+      StorePos@1000000000 : Record 50062;
+    BEGIN
+      StorePos.SETRANGE("Store No.",UnMgt.GetCurrStore);
+      IF StorePos.FINDSET THEN BEGIN
+        StorePos."Current Picture":=pNewPicCode;
+        StorePos."Picture Last Change":=TODAY;
+        StorePos.FirstLineNumber:=pFirstNumber;
+        StorePos.LastLineNumber:=pLastNumber;
+        StorePos.MODIFY;
+      END;
+    END;
+
+    PROCEDURE GetPicValues@1000000012(VAR varFirstNumber@1000000000 : Integer;VAR varLastNumber@1000000001 : Integer);
+    VAR
+      StorePos@1000000002 : Record 50062;
+    BEGIN
+      varFirstNumber:=0;
+      varLastNumber:=0;
+
+      StorePos.SETRANGE("Store No.",UnMgt.GetCurrStore);
+      IF StorePos.FINDSET THEN BEGIN
+        varFirstNumber:=StorePos.FirstLineNumber;
+        varLastNumber:=StorePos.LastLineNumber
+      END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+

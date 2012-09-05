@@ -1,0 +1,128 @@
+OBJECT Codeunit 50177 Import Item Properties
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05.09.12;
+    Time=13:52:49;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+            ImportFromExcel();
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      dlg@1101981000 : Dialog;
+
+    PROCEDURE ImportFromExcel@1000000001();
+    VAR
+      fmImportExcel@1000000000 : Form 50153;
+      FileName@1000000001 : Text[150];
+      LastRow@1000000003 : Integer;
+      RowNo@1000000004 : Integer;
+      PQRLine@1000000005 : Record 50065;
+      LineNo@1000000006 : Integer;
+      Item@1000000007 : Record 27;
+      ItemVariant@1000000008 : Record 5401;
+      VariantCode@1000000009 : Code[20];
+      ItemNo@1000000010 : Code[10];
+      NewPrice@1000000011 : Decimal;
+      txtNewPrice@1000000012 : Code[20];
+      UnMgt@1000000013 : Codeunit 50112;
+    BEGIN
+      fmImportExcel.LOOKUPMODE(TRUE);
+      fmImportExcel.SetFirstImportRow(4);
+      fmImportExcel.SetColumn('A','Код товара');
+      fmImportExcel.SetColumn('B','Код варианта');
+      fmImportExcel.SetColumn('С','Описание');
+      fmImportExcel.SetColumn('D','Длина');
+      fmImportExcel.SetColumn('E','Ширина');
+      fmImportExcel.SetColumn('F','Высота/толщина');
+      fmImportExcel.SetColumn('G','вес реальный, гр');
+      fmImportExcel.SetColumn('H','вес для сайта, гр');
+
+
+      IF fmImportExcel.RUNMODAL = ACTION::LookupOK THEN
+        FileName:=fmImportExcel.GetFileName;
+
+      IF FileName='' THEN
+        EXIT;
+
+      ImportItemValues(FileName);
+    END;
+
+    PROCEDURE ImportItemValues@1000000080(pFileName@1101981001 : Text[300]);
+    VAR
+      LastRow@1000000001 : Integer;
+      Row@1000000000 : Integer;
+      VariantCode@1000000003 : Code[10];
+      Excel@1101981000 : Codeunit 50109;
+    BEGIN
+      Excel.OpenFile(pFileName);
+
+      LastRow:=Excel.GetLastRow;
+
+      dlg.OPEN('#1#######################################\'+
+               '@2@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+
+      FOR Row:=4 TO LastRow DO BEGIN
+        VariantCode:=Excel.ReadField('B',Row);
+        Update('Импорт строки '+FORMAT(Row),Row,LastRow);
+
+        IF VariantCode<>'' THEN BEGIN
+          CreateDimension(VariantCode,'LENGTH',Excel.ReadField('D',Row));
+          CreateDimension(VariantCode,'WIDTH',Excel.ReadField('E',Row));
+          CreateDimension(VariantCode,'HEIGHT',Excel.ReadField('F',Row));
+          CreateDimension(VariantCode,'FACTWEIGHT',Excel.ReadField('G',Row));
+          CreateDimension(VariantCode,'SITEWEIGHT',Excel.ReadField('H',Row));
+
+        END;
+
+      END;
+
+      dlg.CLOSE;
+      MESSAGE('Успешно ипортировано %1 строк',LastRow);
+    END;
+
+    PROCEDURE CreateDimension@1000000082(pVariant@1000000002 : Code[10];pDimCode@1000000000 : Code[10];pValue@1000000001 : Text[30]);
+    VAR
+      ItemDimension@1000000003 : Record 50058;
+      ItemVariant@1000000004 : Record 5401;
+      ItemDimSetup@1000000005 : Record 50059;
+    BEGIN
+        IF pValue='' THEN
+          EXIT;
+
+      ItemVariant.SETRANGE(Code,pVariant);
+      IF ItemVariant.FINDSET THEN BEGIN
+        CLEAR(ItemDimension);
+        ItemDimension."Item No.":=ItemVariant."Item No.";
+        ItemDimension."Variant Code":=ItemVariant.Code;
+        ItemDimension."Dimension Code":=pDimCode;
+        ItemDimSetup.GET(1,pDimCode);
+        ItemDimension."Value Type":=ItemDimSetup."Value Type";
+        ItemDimension."Dimension Type":=ItemDimSetup.Type;
+        ItemDimension.VALIDATE("Dimension Value",pValue);
+        IF NOT ItemDimension.INSERT(TRUE) THEN
+          ItemDimension.MODIFY(TRUE);
+      END;
+    END;
+
+    PROCEDURE Update@1000000003(pDesc@1000000000 : Text[50];pCounter@1000000001 : Integer;pTotal@1000000002 : Integer);
+    BEGIN
+
+      dlg.UPDATE(1,pDesc);
+
+      dlg.UPDATE(2,ROUND(pCounter/pTotal*10000,1));
+    END;
+
+    BEGIN
+    END.
+  }
+}
+

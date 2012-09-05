@@ -1,0 +1,54 @@
+OBJECT Table 50194 Item With Float Price
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05.09.12;
+    Time=17:05:25;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    OnInsert=VAR
+               thistable@1101981000 : Record 50194;
+             BEGIN
+               IF thistable.FINDLAST THEN
+                 "Entry No.":=thistable."Entry No."+1
+               ELSE
+                 "Entry No.":=1;
+
+               "User ID":=USERID;
+               "Last Change":=CURRENTDATETIME;
+             END;
+
+    OnModify=BEGIN
+               "User ID":=USERID;
+               "Last Change":=CURRENTDATETIME;
+             END;
+
+    CaptionML=RUS=Товар с плавающей ценой;
+  }
+  FIELDS
+  {
+    { 10  ;   ;Entry No.           ;Integer       ;CaptionML=RUS=Но. }
+    { 20  ;   ;Item No.            ;Code10        ;TableRelation=Item;
+                                                   CaptionML=RUS=Товар Но. }
+    { 30  ;   ;Start Date          ;Date          ;CaptionML=RUS=Дата начала }
+    { 40  ;   ;End Date            ;Date          ;CaptionML=RUS=Дата окончания }
+    { 50  ;   ;User ID             ;Text50        ;CaptionML=RUS=Пользователь;
+                                                   Editable=No }
+    { 60  ;   ;Last Change         ;DateTime      ;CaptionML=RUS=Изменено;
+                                                   Editable=No }
+  }
+  KEYS
+  {
+    {    ;Entry No.                               ;Clustered=Yes }
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

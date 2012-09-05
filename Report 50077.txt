@@ -1,0 +1,111 @@
+OBJECT Report 50077 Month Sales Plan-Fact
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05.09.12;
+    Time=17:44:05;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    ProcessingOnly=Yes;
+    OnPreReport=BEGIN
+                  Main;
+                END;
+
+  }
+  DATAITEMS
+  {
+  }
+  REQUESTFORM
+  {
+    PROPERTIES
+    {
+      Width=9020;
+      Height=3410;
+    }
+    CONTROLS
+    {
+    }
+  }
+  CODE
+  {
+    VAR
+      Excel@1000000000 : Codeunit 50109;
+
+    PROCEDURE Main@1000000001();
+    VAR
+      Row@1000000000 : Integer;
+      Value@1000000001 : Text[300];
+      ItemDim@1000000002 : Record 50058;
+      VAL@1000000003 : Record 5802;
+      LastRow@1000000004 : Integer;
+      ItemSold1@1000000005 : Integer;
+      ItemSold2@1000000006 : Integer;
+      ItemSold3@1000000007 : Integer;
+      Col@1000000008 : Integer;
+    BEGIN
+      Excel.OpenFile('');
+      LastRow:=Excel.GetLastRow;
+
+      FOR Row:=3 TO LastRow DO BEGIN
+        Value:=Excel.ReadField('A',Row);
+        IF Value<>'' THEN BEGIN
+          ItemDim.SETRANGE("Dimension Value",Value);
+          ItemDim.SETRANGE("Dimension Code",'DESC');
+          ItemSold1:=0;
+          ItemSold2:=0;
+          ItemSold3:=0;
+          Col:=18;
+          IF ItemDim.FINDSET THEN
+            REPEAT
+              Excel.SetCell(Col,Row,ItemDim."Item No.");
+
+              VAL.SETCURRENTKEY("Item No.","Posting Date","Item Ledger Entry Type","Entry Type",
+                                "Variance Type","Item Charge No.","Location Code","Variant Code");
+              VAL.SETRANGE("Item No.",ItemDim."Item No.");
+              VAL.SETRANGE("Variant Code",ItemDim."Variant Code");
+              VAL.SETRANGE("Posting Date",010812D,310812D);
+              VAL.SETRANGE("Item Ledger Entry Type",VAL."Item Ledger Entry Type"::Sale);
+
+
+              VAL.SETRANGE("Location Code",'1-ãÄÇäÄ');
+              VAL.SETRANGE("Responsibility Center",'å-ãÄÇäÄ');
+              IF VAL.FINDSET THEN
+                REPEAT
+                  ItemSold1+=VAL."Item Ledger Entry Quantity";
+                UNTIL VAL.NEXT=0;
+
+
+
+              VAL.SETRANGE("Location Code",'1-åÄÉÄáàç');
+              VAL.SETRANGE("Responsibility Center",'å-åÄÉÄáàç');
+              IF VAL.FINDSET THEN
+                REPEAT
+                  ItemSold2+=VAL."Item Ledger Entry Quantity";
+                UNTIL VAL.NEXT=0;
+
+
+              VAL.SETRANGE("Location Code",'1-èëå');
+              VAL.SETRANGE("Responsibility Center",'å-èëå');
+              IF VAL.FINDSET THEN
+                REPEAT
+                  ItemSold3+=VAL."Item Ledger Entry Quantity";
+                UNTIL VAL.NEXT=0;
+
+
+               Col+=1;
+            UNTIL ItemDim.NEXT=0;
+            Excel.SetCell(20,Row,FORMAT(-ItemSold1));
+            Excel.SetCell(21,Row,FORMAT(-ItemSold2));
+            Excel.SetCell(22,Row,FORMAT(-ItemSold3));
+        END;
+      END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+

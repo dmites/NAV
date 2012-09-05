@@ -1,0 +1,154 @@
+OBJECT Form 50153 Universal Export Excel
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05.09.12;
+    Time=13:54:39;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    Permissions=TableData 50065=rimd;
+    Width=13640;
+    Height=12210;
+    SourceTable=Table50066;
+    OnOpenForm=BEGIN
+                 IF FINDFIRST THEN;
+
+                 IF FirstRownNumber=0 THEN BEGIN
+
+                   IF SkipFirstRec THEN
+                     Warning:='Первая строка при загрузке пропускается'
+                   ELSE
+                      Warning:='Загрузка с первой строки';
+
+                 END ELSE
+                   Warning:='Данные будут загружены с '+FORMAT(FirstRownNumber)+' строки';
+
+                 tLine.SETCURRENTKEY("ExcelField Name",tLine."TableField Caption");
+                 CurrForm.Load.ENABLED:=(FileName<>'');
+               END;
+
+    OnFindRecord=VAR
+                   blnFound@1000000000 : Boolean;
+                 BEGIN
+                   tLine:=Rec;
+                   tLine.COPY(Rec);
+                   blnFound:= tLine.FIND(Which);
+                   IF blnFound THEN
+                     Rec := tLine;
+                   EXIT(blnFound);
+                 END;
+
+    OnNextRecord=VAR
+                   intResultStep@1000000000 : Integer;
+                 BEGIN
+                   tLine:=Rec;
+                     intResultStep  := tLine.NEXT(Steps);
+                     IF intResultStep <> 0 THEN
+                       Rec := tLine;
+                     EXIT(intResultStep);
+                 END;
+
+  }
+  CONTROLS
+  {
+    { 1000000000;Label  ;550  ;440  ;5060 ;440  ;FontSize=10;
+                                                 CaptionML=RUS=Загрузка из Excel }
+    { 1000000001;Label  ;550  ;1210 ;2090 ;440  ;FontSize=8;
+                                                 CaptionML=RUS=в документ }
+    { 1000000002;TextBox;2750 ;1210 ;2860 ;440  ;Editable=No;
+                                                 SourceExpr=DocNo }
+    { 1000000003;Label  ;550  ;2090 ;2090 ;440  ;CaptionML=RUS=из файла }
+    { 1000000004;TextBox;2750 ;2090 ;10230;440  ;SourceExpr=FileName;
+                                                 OnAssistEdit=BEGIN
+                                                                  FileName := CommonDialogMgt.OpenFile('Файл exel','',2,'',0);
+                                                                CurrForm.Load.ENABLED:=(FileName<>'');
+                                                                CurrForm.UPDATE;
+                                                              END;
+
+                                                 OnAfterValidate=BEGIN
+                                                                   CurrForm.Load.ENABLED:=(FileName<>'');
+                                                                 END;
+                                                                  }
+    { 1000000006;TextBox;550  ;2750 ;12320;440  ;Editable=No;
+                                                 ForeColor=243;
+                                                 Border=No;
+                                                 FontName=Calibri;
+                                                 FontSize=11;
+                                                 FontBold=Yes;
+                                                 SourceExpr=Warning }
+    { 1000000038;TableBox;550 ;3300 ;12320;7590 ;Editable=No;
+                                                 HeadingHeight=990 }
+    { 1000000039;TextBox;0    ;6050 ;1700 ;440  ;ParentControl=1000000038;
+                                                 InColumn=Yes;
+                                                 CaptionML=RUS=Столбец Excel;
+                                                 SourceExpr=tLine."ExcelField Name" }
+    { 1000000040;Label  ;0    ;0    ;0    ;0    ;ParentControl=1000000039;
+                                                 InColumnHeading=Yes }
+    { 1000000041;TextBox;1693 ;6160 ;6270 ;440  ;ParentControl=1000000038;
+                                                 InColumn=Yes;
+                                                 SourceExpr=tLine."TableField Caption" }
+    { 1000000042;Label  ;0    ;0    ;0    ;0    ;ParentControl=1000000041;
+                                                 InColumnHeading=Yes;
+                                                 CaptionML=RUS=Загружаемое значение }
+    { 1000000005;CommandButton;9790;11110;3080;770;
+                                                 Name=Load;
+                                                 FontSize=10;
+                                                 FontBold=Yes;
+                                                 PushAction=LookupOK;
+                                                 CaptionML=RUS=ЗАГРУЗИТЬ }
+  }
+  CODE
+  {
+    VAR
+      DocNo@1000000000 : Text[30];
+      FileName@1000000001 : Text[800];
+      CommonDialogMgt@1000000002 : Codeunit 412;
+      Warning@1000000003 : Text[100];
+      SkipFirstRec@1000000004 : Boolean;
+      tLine@1000000005 : TEMPORARY Record 50066;
+      int@1000000006 : Integer;
+      FirstRownNumber@1101981000 : Integer;
+
+    PROCEDURE SetOptions@1000000000(pDocNo@1000000000 : Text[30];pSkipFirstRec@1000000001 : Boolean);
+    BEGIN
+      DocNo:=pDocNo;
+      SkipFirstRec:=pSkipFirstRec;
+    END;
+
+    PROCEDURE SetColumn@1000000001(pWord@1000000000 : Code[1];pDescription@1000000001 : Text[100]);
+    VAR
+      ch@1000000002 : Char;
+    BEGIN
+      tLine.SETRANGE("ExcelField Name",pWord);
+      IF tLine.FINDFIRST THEN BEGIN
+        tLine."TableField Caption":=pDescription;
+        tLine.MODIFY;
+      END  ELSE BEGIN
+        tLine.INIT;
+        int+=1;
+        tLine.Code:=COPYSTR(USERID,1,10);
+        tLine."TableField No.":=int;
+        tLine."ExcelField Name":=pWord;
+        tLine."TableField Caption":=pDescription;
+        tLine.INSERT;
+      END;
+    END;
+
+    PROCEDURE GetFileName@1000000002() : Text[600];
+    BEGIN
+      EXIT(FileName);
+    END;
+
+    PROCEDURE SetFirstImportRow@1101981000(pRowNumber@1101981000 : Integer);
+    BEGIN
+      FirstRownNumber:=pRowNumber;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+

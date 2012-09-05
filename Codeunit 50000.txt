@@ -1,0 +1,578 @@
+OBJECT Codeunit 50000 DL Mgt
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05.09.12;
+    Time=17:10:12;
+    Modified=Yes;
+    Version List=AS,3.00;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      UserSetup@1101489000 : Record 91;
+      LastLine@1101489001 : Integer;
+
+    PROCEDURE SendMailByChangeOrderStatus@1000000000(p_SH@1000000000 : Record 36;p_PrevStatus@1000000001 : Code[20]);
+    VAR
+      lrec_DeliverySet@1000000002 : Record 50010;
+      f@1000000003 : File;
+      ltxt_body@1000000004 : ARRAY [5] OF Text[1024];
+      ltxt_letter@1000000005 : Text[1024];
+      lcdu_Mail@1000000006 : Codeunit 400;
+      LetterNumber@1000000007 : Integer;
+      lrec_Country@1000000008 : Record 9;
+      ltxt_OrderInfo@1000000009 : Text[1024];
+      lrec_SL@1000000010 : Record 37;
+      lint_Num@1000000011 : Integer;
+      lint_BodyNum@1000000012 : Integer;
+    BEGIN
+      IF lrec_DeliverySet.GET(p_PrevStatus,p_SH."Current Order Status",p_SH."Language Code") THEN BEGIN
+        IF lrec_DeliverySet.Send THEN BEGIN
+          lrec_DeliverySet.CALCFIELDS(Template);
+          IF lrec_DeliverySet.Template.HASVALUE THEN BEGIN
+            lrec_DeliverySet.Template.EXPORT('c:\'+lrec_DeliverySet."Template Name",FALSE);
+
+            f.OPEN('c:\'+lrec_DeliverySet."Template Name");
+            f.TEXTMODE(TRUE);
+
+            WHILE f.POS <> f.LEN DO BEGIN
+              f.READ(ltxt_letter);
+              ltxt_body[1] += ltxt_letter;
+            END;
+            LetterNumber := STRPOS(ltxt_body[1],'*OrderAddress*');
+            IF LetterNumber <> 0 THEN BEGIN
+              IF lrec_Country.GET(p_SH."Ship-to Country/Region Code") THEN
+                ltxt_body[1] := COPYSTR(ltxt_body[1],1,LetterNumber-1) + //часть шаблона до метки
+                             lrec_Country.Name + ', ' + p_SH."Ship-to Post Code" + ', ' + p_SH."Ship-to City" + ', ' +
+                             p_SH."Shipping Full Address" +
+                             COPYSTR(ltxt_body[1],LetterNumber+14) //часть шаблона после метки
+              ELSE
+                ltxt_body[1] := COPYSTR(ltxt_body[1],1,LetterNumber-1) + //часть шаблона до метки
+                             p_SH."Ship-to Country/Region Code" + ', ' + p_SH."Ship-to Post Code" + ', ' + p_SH."Ship-to City" + ', ' +
+                             p_SH."Shipping Full Address" +
+                             COPYSTR(ltxt_body[1],LetterNumber+14); //часть шаблона после метки
+            END;
+            LetterNumber := STRPOS(ltxt_body[1],'*OrderInfo*');
+            IF LetterNumber <> 0 THEN BEGIN
+              ltxt_body[5] := COPYSTR(ltxt_body[1],LetterNumber+11); //часть шаблона после метки
+              ltxt_body[1] := COPYSTR(ltxt_body[1],1,LetterNumber-1); //часть шаблона до метки
+              lint_BodyNum := 2;
+              ltxt_body[lint_BodyNum] += 'Заказ  ' + FORMAT(p_SH."No.") + '<BR>';
+              lrec_SL.RESET;
+              lrec_SL.SETRANGE("Document Type",p_SH."Document Type");
+              lrec_SL.SETRANGE("Document No.",p_SH."No.");
+              lrec_SL.SETRANGE(Type,lrec_SL.Type::Item);
+              IF lrec_SL.FIND('-') THEN REPEAT
+                lint_Num += 1;
+                ltxt_body[lint_BodyNum] += FORMAT(lint_Num) + '. ' + lrec_SL.Description + ' ' +
+                                           FORMAT(lrec_SL.Quantity) + ' X ' + FORMAT(lrec_SL."Line Amount"/lrec_SL.Quantity) + '<BR>';
+                IF STRLEN(ltxt_body[lint_BodyNum]) > 900 THEN
+                  lint_BodyNum += 1;
+
+              UNTIL lrec_SL.NEXT = 0;
+              lrec_SL.SETRANGE(Type,lrec_SL.Type::"G/L Account");
+              IF lrec_SL.FIND('-') THEN REPEAT
+                lint_Num += 1;
+                ltxt_body[lint_BodyNum] += FORMAT(lint_Num) + '. ' + lrec_SL.Description + ' ' +
+                                           FORMAT(lrec_SL.Quantity) + ' X ' + FORMAT(lrec_SL."Line Amount"/lrec_SL.Quantity) + '<BR>';
+                IF STRLEN(ltxt_body[lint_BodyNum]) > 900 THEN
+                  lint_BodyNum += 1;
+              UNTIL lrec_SL.NEXT = 0;
+              ltxt_body[lint_BodyNum] += 'Итого по заказу: ' + FORMAT(p_SH.GetAmount) + '<BR>';
+            END;
+            lcdu_Mail.CreateMessage('Store Art. Lebedev',
+                                    'store@design.ru',
+                                    p_SH."Sell-to Contact",
+                                    'Order Status',
+                                    ltxt_body,TRUE);
+            lcdu_Mail.Send;
+            f.CLOSE;
+            FILE.ERASE('c:\'+lrec_DeliverySet."Template Name");
+          END;
+        END;
+      END;
+    END;
+
+    PROCEDURE CreateOrderType6@1000000001(EmployeeSales@1000000003 : Boolean;WebSales@1101489002 : Boolean;Par3@1101489003 : Boolean;RC@1101489004 : Code[20];Par5@1101489005 : Boolean;Par6@1000000005 : Boolean);
+    VAR
+      LStudioSetup@1000000002 : Record 50001;
+      SalesHeader@1000000001 : Record 36;
+      lfrm_SHForm@1000000000 : Form 50048;
+      lfrm_SHEmplForm@1000000004 : Form 50034;
+      RespCenter@1101489000 : Record 5714;
+      Location@1101489001 : Record 14;
+      fmRetailSales@1000000007 : Form 50145;
+    BEGIN
+      LStudioSetup.GET;
+
+      SalesHeader.INIT;
+      SalesHeader."Document Type" := SalesHeader."Document Type"::Order;
+      SalesHeader."Order Type" := SalesHeader."Order Type"::Store;
+
+      IF WebSales THEN
+        SalesHeader."Order Type" := SalesHeader."Order Type"::"Web Store";
+
+      SalesHeader.INSERT(TRUE);
+      SalesHeader.SetHideValidationDialog(TRUE);
+
+      IF EmployeeSales THEN BEGIN
+        LStudioSetup.TESTFIELD(DCNFE);
+        SalesHeader.VALIDATE("Sell-to Customer No.",LStudioSetup.DCNFE);
+        SalesHeader.VALIDATE("Sell-to Contact No.", '');
+        SalesHeader.VALIDATE("Sell-to Contact", '');
+        SalesHeader.VALIDATE("Ship-to Contact", '');
+      END ELSE BEGIN
+        LStudioSetup.TESTFIELD(DCNFWS);
+        LStudioSetup.TESTFIELD(DCNFR);
+        SalesHeader.VALIDATE("Sell-to Customer No.",LStudioSetup.DCNFWS);
+        SalesHeader.VALIDATE("Sell-to Contact No.",LStudioSetup.DCNFR);
+
+        IF RC = 'М-AMAZON' THEN BEGIN
+          SalesHeader."Posting Description" := 'Продажа Amazon №' + SalesHeader."No.";
+          SalesHeader.VALIDATE("Sell-to Customer No.", 'C00099');
+        END;
+
+        IF RC = 'Ф-КИЕВ-РОЗ' THEN BEGIN
+          SalesHeader."Posting Description" := 'Украина. Чек №' + SalesHeader."No.";
+          SalesHeader.VALIDATE("Sell-to Customer No.", 'C00075');
+
+          IF Par5 THEN BEGIN
+            IF Par6 THEN
+              SalesHeader.VALIDATE("Sell-to Customer No.",'C00002')
+            ELSE
+              SalesHeader.VALIDATE("Sell-to Customer No.",'C00076');
+
+            SalesHeader.VALIDATE("Sell-to Contact No.", '');
+            SalesHeader.VALIDATE("Sell-to Contact", '');
+            SalesHeader.VALIDATE("Ship-to Contact", '');
+          END;
+
+        END;
+      END;
+
+      SalesHeader.VALIDATE("Language Code",LStudioSetup.ML);
+
+      IF Par3 THEN BEGIN
+        SalesHeader.VALIDATE("Responsibility Center", RC);
+        SalesHeader.Temp2 := TRUE;
+      END;
+
+      RespCenter.GET(SalesHeader."Responsibility Center");
+      RespCenter.TESTFIELD("Location Code");
+      SalesHeader.VALIDATE("Location Code", RespCenter."Location Code");
+
+      IF WebSales THEN BEGIN
+        SalesHeader.VALIDATE("Responsibility Center", RC);
+        SalesHeader.Temp2 := TRUE;
+      END;
+
+      Location.GET(RespCenter."Location Code");
+      Location.TESTFIELD("Cash Payment Method");
+      IF NOT Par3 THEN
+        Location.TESTFIELD("Signal Payment Method");
+
+      IF RC = 'Ф-КИЕВ-РОЗ' THEN
+        IF NOT Par5 THEN
+          Location.TESTFIELD("Signal Payment Method")
+         ELSE
+           Location.TESTFIELD("Salary Payment Method");
+
+      Location.TESTFIELD(Location."Shipping Agent Code");
+      IF EmployeeSales THEN
+        Location.TESTFIELD("Salary Payment Method");
+
+      SalesHeader.VALIDATE("Shipping Agent Code", Location."Shipping Agent Code");
+      SalesHeader.Temp := TRUE;
+      SalesHeader.MODIFY;
+
+      IF EmployeeSales THEN BEGIN
+        fmRetailSales.SetModeEmpRUS;
+        fmRetailSales.SETRECORD(SalesHeader);
+        fmRetailSales.RUN;
+      END ELSE BEGIN
+
+        IF WebSales THEN
+          fmRetailSales.SetModeWebRUS;
+        IF Par3 THEN
+          IF RC = 'Ф-КИЕВ-РОЗ' THEN
+           IF NOT Par5 THEN BEGIN
+             fmRetailSales.SetModeSaleUKR
+           END ELSE BEGIN
+             fmRetailSales.SetModeEmpUKR;
+           END
+          ELSE
+            fmRetailSales.SetAmazonSale;
+
+
+        fmRetailSales.SETRECORD(SalesHeader);
+        fmRetailSales.RUN;
+
+      END;
+    END;
+
+    PROCEDURE AddItemInSaleFromBarCode@1000000002(pBarCode@1000000000 : Text[50];pDocType@1000000004 : Integer;pDocNo@1000000005 : Code[20]) result : Integer;
+    VAR
+      SalesLine@1000000002 : Record 37;
+      LastLineNo@1000000003 : Integer;
+      BarcodeMgt@1000000006 : Codeunit 50116;
+      ItemNo@1000000007 : Code[10];
+      Variant@1000000008 : Code[20];
+    BEGIN
+      IF NOT BarcodeMgt.GetItemByBarcode(pBarCode,ItemNo,Variant) THEN BEGIN
+        MESSAGE('Не найден товар, соответствующий штрихкоду %1',pBarCode);
+        EXIT;
+      END;
+
+
+      SalesLine.RESET;
+      SalesLine.SETRANGE("Document Type",pDocType);
+      SalesLine.SETRANGE("Document No.",pDocNo);
+      SalesLine.SETRANGE("No.",ItemNo);
+      SalesLine.SETRANGE("Variant Code",Variant);
+
+      IF NOT SalesLine.FINDFIRST THEN BEGIN
+
+        SalesLine.RESET;
+        SalesLine.SETRANGE("Document Type",pDocType);
+        SalesLine.SETRANGE("Document No.",pDocNo);
+        IF SalesLine.FINDLAST THEN
+          LastLineNo := SalesLine."Line No.";
+
+        SalesLine.INIT;
+        SalesLine.VALIDATE("Document Type",pDocType);
+        SalesLine.VALIDATE("Document No.",pDocNo);
+        SalesLine.VALIDATE("Line No.",LastLineNo + 10000);
+        SalesLine.INSERT(TRUE);
+        SalesLine.VALIDATE(Type,SalesLine.Type::Item);
+        SalesLine.VALIDATE("No.",ItemNo);
+        SalesLine.VALIDATE("Variant Code",Variant);
+        SalesLine.VALIDATE(Quantity,1);
+        SalesLine.MODIFY;
+        result := SalesLine."Line No.";
+
+      END ELSE BEGIN
+
+        SalesLine.VALIDATE(Quantity,SalesLine.Quantity + 1);
+        SalesLine.MODIFY;
+
+      END;
+
+      CheckItemFloatPrice(SalesLine); // DP проверяем на товар с плавающей ценой
+    END;
+
+    PROCEDURE AddItemInSaleFromSearch@1101489000(pItemNo@1000000000 : Code[20];pVariant@1101489000 : Code[10];pDocType@1000000004 : Integer;pDocNo@1000000005 : Code[20]);
+    VAR
+      SalesLine@1000000002 : Record 37;
+      LastLineNo@1000000003 : Integer;
+    BEGIN
+      SalesLine.RESET;
+      SalesLine.SETRANGE("Document Type",pDocType);
+      SalesLine.SETRANGE("Document No.",pDocNo);
+
+      IF SalesLine.FINDLAST THEN
+        LastLineNo :=SalesLine."Line No.";
+
+      SalesLine.INIT;
+      SalesLine.VALIDATE("Document Type",pDocType);
+      SalesLine.VALIDATE("Document No.",pDocNo);
+      SalesLine.VALIDATE("Line No.",LastLineNo + 10000);
+      SalesLine.INSERT(TRUE);
+
+      SalesLine.VALIDATE(Type,SalesLine.Type::Item);
+      SalesLine.VALIDATE("No.",pItemNo);
+      SalesLine.VALIDATE("Variant Code",pVariant);
+      SalesLine.VALIDATE(Quantity,1);
+      SalesLine.MODIFY;
+
+      CheckItemFloatPrice(SalesLine); // DP проверяем на товар с плавающей ценой
+    END;
+
+    PROCEDURE CreateOrderType3@1101489001(Par1@1101489002 : Boolean);
+    VAR
+      Transfer@1101489000 : Record 5740;
+      TransferForm@1101489001 : Form 50080;
+      UserMgt@1101489004 : Codeunit 5700;
+    BEGIN
+      IF UserMgt.GetTransferFilter <> '' THEN BEGIN
+        Transfer.INIT;
+        IF Par1 THEN
+          Transfer."Transfer-to Code" := UserMgt.GetTransferFilter
+        ELSE
+          Transfer."Transfer-from Code" := UserMgt.GetTransferFilter;
+        Transfer.INSERT(TRUE);
+        IF Par1 THEN BEGIN
+          TransferForm.SETRECORD(Transfer);
+          TransferForm.SetControlsForIn;
+          TransferForm.RUN;
+        END ELSE BEGIN
+          TransferForm.SETRECORD(Transfer);
+          TransferForm.SetControlsForOut;
+          TransferForm.RUN;
+        END;
+      END ELSE BEGIN
+        ERROR('Необходимо настроить Перемещение Склад Фильтр.');
+      END;
+    END;
+
+    PROCEDURE ScanBar@1101489002(p_BarCode@1000000000 : Text[50]) FindItem : Code[20];
+    VAR
+      lrec_ItemCrossRef@1000000001 : Record 5717;
+    BEGIN
+      lrec_ItemCrossRef.RESET;
+      lrec_ItemCrossRef.SETRANGE("Cross-Reference Type",lrec_ItemCrossRef."Cross-Reference Type"::"Bar Code");
+      lrec_ItemCrossRef.SETRANGE("Discontinue Bar Code",FALSE);
+      lrec_ItemCrossRef.SETRANGE("Cross-Reference No.",p_BarCode);
+      IF lrec_ItemCrossRef.FIND('-') THEN BEGIN
+        FindItem := lrec_ItemCrossRef."Item No.";
+      END;
+    END;
+
+    PROCEDURE ScanBar2@1101489005(p_BarCode@1000000000 : Text[50]) FindVariant : Code[10];
+    VAR
+      lrec_ItemCrossRef@1000000001 : Record 5717;
+    BEGIN
+      lrec_ItemCrossRef.RESET;
+      lrec_ItemCrossRef.SETRANGE("Cross-Reference Type",lrec_ItemCrossRef."Cross-Reference Type"::"Bar Code");
+      lrec_ItemCrossRef.SETRANGE("Discontinue Bar Code",FALSE);
+      lrec_ItemCrossRef.SETRANGE("Cross-Reference No.",p_BarCode);
+      IF lrec_ItemCrossRef.FIND('-') THEN BEGIN
+        FindVariant := lrec_ItemCrossRef."Variant Code";
+      END;
+    END;
+
+    PROCEDURE CreateOrderType4@1101489003();
+    VAR
+      CashOrderForm@1101489001 : Form 50098;
+      GLLine@1101489000 : Record 81;
+      LebedevSetup@1101489002 : Record 50001;
+      RespCenter@1101489003 : Record 5714;
+      GenJourBatch@1101489004 : Record 232;
+      BankAccount@1101489005 : Record 270;
+    BEGIN
+      UserSetup.GET(USERID);
+      UserSetup.TESTFIELD("Salespers./Purch. Code");
+      UserSetup.TESTFIELD(UserSetup."Sales Resp. Ctr. Filter");
+      RespCenter.GET(UserSetup."Sales Resp. Ctr. Filter");
+      RespCenter.TESTFIELD("Journal Template Name");
+      RespCenter.TESTFIELD("Journal Batch Name");
+      GLLine.SETRANGE("Journal Template Name", RespCenter."Journal Template Name");
+      GLLine.SETRANGE("Journal Batch Name",  RespCenter."Journal Batch Name");
+      IF GLLine.FIND('-') THEN
+        GLLine.DELETEALL;
+      GLLine.INIT;
+      GLLine."Journal Template Name" := RespCenter."Journal Template Name";
+      GLLine."Journal Batch Name" := RespCenter."Journal Batch Name";
+      GLLine."Line No." := 10000;
+      GLLine.SetUpNewLine(GLLine,0,FALSE);
+      GLLine."Document Type" := GLLine."Document Type"::Refund;
+      GLLine."Posting Date" := TODAY;
+      GLLine."Account Type" := GLLine."Account Type"::Customer;
+      LebedevSetup.GET;
+      LebedevSetup.TESTFIELD(DCNFWS);
+      IF RespCenter."Country/Region Code"<>'UKR' THEN
+        GLLine.VALIDATE("Account No.", LebedevSetup.DCNFWS)
+      ELSE
+         GLLine.VALIDATE("Account No.", 'C00230');
+
+      GLLine."Bank Payment Type" := GLLine."Bank Payment Type"::"Computer Check";
+      GLLine."Responsibility Center" := UserSetup."Sales Resp. Ctr. Filter";
+      GLLine."Salespers./Purch. Code" := UserSetup."Salespers./Purch. Code";
+      GenJourBatch.GET(RespCenter."Journal Template Name",RespCenter."Journal Batch Name");
+      GenJourBatch.TESTFIELD("Bal. Account Type", GenJourBatch."Bal. Account Type"::"Bank Account");
+      GenJourBatch.TESTFIELD("Bal. Account No.");
+      BankAccount.GET(GenJourBatch."Bal. Account No.");
+      BankAccount.TESTFIELD("Legal Person Code");
+      GLLine."Legal Person Code" := BankAccount."Legal Person Code";
+      LebedevSetup.TESTFIELD(RRRC);
+      GLLine."Reason Code" := LebedevSetup.RRRC;
+      GLLine.Description := 'ФИО';
+      GLLine."Text 2" := 'паспорту серия , номер , выдан , XX.XX.XXXX.';
+      GLLine.INSERT(TRUE);
+      CashOrderForm.SETRECORD(GLLine);
+      CashOrderForm.RUN;
+    END;
+
+    PROCEDURE CreateOrderTypr7@1101489004(p_ForEmployee@1000000003 : Boolean;RetailWebStoreOrder@1101489002 : Boolean);
+    VAR
+      lrec_WSSetup@1000000002 : Record 50001;
+      SalesHeader@1000000001 : Record 36;
+      lfrm_SHForm@1000000000 : Form 50045;
+      RespCenter@1101489000 : Record 5714;
+      Location@1101489001 : Record 14;
+    BEGIN
+      lrec_WSSetup.GET;
+      SalesHeader.INIT;
+      SalesHeader."Document Type" := SalesHeader."Document Type"::"Return Order";
+      SalesHeader."Order Type" := SalesHeader."Order Type"::Store;
+      SalesHeader.INSERT(TRUE);
+      SalesHeader.Temp := TRUE;
+      SalesHeader.MODIFY;
+      lfrm_SHForm.SETRECORD(SalesHeader);
+      lfrm_SHForm.RUN;
+    END;
+
+    PROCEDURE SetOtherSaleType3@1101489006(ItemNo@1101489005 : Code[20];PriceGroup@1101489006 : Integer;SaleDate@1101489008 : Date;VariantNo@1101489000 : Code[20]);
+    VAR
+      SalesPrice@1101489007 : Record 7002;
+    BEGIN
+      IF SalesPrice.GET(ItemNo, SalesPrice."Sales Type"::"Customer Price Group", PriceGroup, 0D, VariantNo) THEN;
+    END;
+
+    PROCEDURE SetSale@1101489007(ShipmentDoc@1101489000 : Record 7320;Quantity@1101489001 : Decimal;p_BarCode@1101489004 : Text[13]);
+    VAR
+      ShipmentLine@1101489002 : Record 7321;
+      ItemCrossRef@1101489003 : Record 5717;
+      BarcodeMgt@1000000000 : Codeunit 50116;
+      ItemNo@1000000001 : Code[20];
+      VariantCode@1000000002 : Code[10];
+    BEGIN
+
+      IF BarcodeMgt.GetItemByBarcode(p_BarCode,ItemNo,VariantCode) THEN BEGIN
+
+        ShipmentLine.RESET;
+        ShipmentLine.SETRANGE("No.",ShipmentDoc."No.");
+        ShipmentLine.SETRANGE("Item No.",ItemNo);
+        ShipmentLine.SETRANGE("Variant Code",VariantCode);
+        IF ShipmentLine.FIND('-') THEN BEGIN
+          IF (ShipmentLine."Picked Up Quantity" + Quantity) <= ShipmentLine.Quantity THEN BEGIN
+            ShipmentLine."Picked Up Quantity" += Quantity;
+            ShipmentLine.MODIFY;
+          END ELSE
+             MESSAGE('Превышение кол-ва для товара %1-%2.', ShipmentLine."Item No.",ShipmentLine."Variant Code" );
+        END ELSE BEGIN
+          MESSAGE('Товар со штрих-кодом %1 в данной отгрузке на найден.', p_BarCode);
+        END;
+
+      END ELSE
+        MESSAGE('Товар со штрих-кодом %1 в базе не найден.', p_BarCode);
+    END;
+
+    PROCEDURE FixShip@1101489008(VAR SaleHeader@1101489000 : Record 36);
+    VAR
+      ShipmentHeader@1101489001 : Record 7320;
+      ShipmentLine@1101489002 : Record 7321;
+    BEGIN
+    END;
+
+    PROCEDURE Amazon@1101489009(SIH@1101489000 : Record 112);
+    VAR
+      JournalTemplName@1101489001 : Code[20];
+      JournalBatchName@1101489002 : Code[20];
+      GenJnlBatch@1101489003 : Record 232;
+      GenJnlLine@1101489004 : Record 81;
+      NoSeriesMgt@1101489005 : Codeunit 396;
+    BEGIN
+      SIH.CALCFIELDS(Amount);
+      IF (SIH."G/L Amazon Comission Doc. No." = '') AND (SIH.Amount <> 0 ) THEN BEGIN
+            JournalTemplName := 'КАССА';
+            JournalBatchName := 'AMAZON';
+            GenJnlBatch.GET(JournalTemplName,JournalBatchName);
+            GenJnlLine.RESET;
+            GenJnlLine.SETRANGE("Journal Template Name", JournalTemplName);
+            GenJnlLine.SETRANGE("Journal Batch Name", JournalBatchName);
+            IF GenJnlLine.FIND('+') THEN
+              LastLine := GenJnlLine."Line No.";
+            GenJnlLine.INIT;
+            GenJnlLine."Journal Template Name" := JournalTemplName;
+            GenJnlLine."Journal Batch Name" := JournalBatchName;
+            GenJnlLine."Line No." := LastLine + 10000;
+            GenJnlLine."Posting Date" := SIH."Posting Date";
+            GenJnlLine.VALIDATE("Document No.");
+            GenJnlLine.INSERT(TRUE);
+            GenJnlLine."Account Type" := GenJnlLine."Account Type"::"G/L Account";
+            GenJnlLine.VALIDATE("Account No.", '90-1141');
+            GenJnlLine."Document No." := SIH."No.";
+            GenJnlLine."Legal Person Code" := SIH."Legal Person Code";
+            GenJnlLine.VALIDATE("Currency Code", SIH."Currency Code");
+            GenJnlLine.VALIDATE(Amount,SIH."Amazon Comission");
+            GenJnlLine."Responsibility Center" := SIH."Responsibility Center";
+            GenJnlLine."Bal. Account Type" := GenJnlLine."Bal. Account Type"::Customer;
+            GenJnlLine.VALIDATE("Bal. Account No.", 'C00099') ;
+            GenJnlLine."Source Type" := GenJnlLine."Source Type"::Customer;
+            GenJnlLine."Source No." := SIH."Sell-to Customer No.";
+            GenJnlLine.VALIDATE(Correction, TRUE);
+            GenJnlLine.Description := 'Списана комиссия Amazon по заказу ' + SIH."No.";
+            GenJnlLine.MODIFY(TRUE);
+            CODEUNIT.RUN(CODEUNIT::"Gen. Jnl.-Post",GenJnlLine);
+        SIH."G/L Amazon Comission Doc. No." := SIH."No.";
+        SIH.MODIFY;
+      END;
+    END;
+
+    PROCEDURE AddLineType3@1101489010(VAR SalesHeader@1101489000 : Record 36);
+    VAR
+      SalesLine@1101489002 : Record 37;
+      LastLineNo@1101489001 : Integer;
+      RC@1101489003 : Record 5714;
+    BEGIN
+      WITH SalesHeader DO BEGIN
+       TESTFIELD("Responsibility Center");
+       IF RC.GET("Responsibility Center") THEN BEGIN
+         RC.TESTFIELD("Delivery GL Account");
+       END;
+         SalesLine.RESET;
+         SalesLine.SETRANGE("Document Type","Document Type");
+         SalesLine.SETRANGE("Document No.","No.");
+         IF SalesLine.FINDLAST THEN
+           LastLineNo := SalesLine."Line No.";
+
+         SalesLine.INIT;
+         SalesLine."Document Type" := "Document Type";
+         SalesLine."Document No." := "No.";
+         SalesLine.VALIDATE("Line No.",LastLineNo + 10000);
+         SalesLine.Type := SalesLine.Type::"G/L Account";
+         SalesLine.VALIDATE("No.", RC."Delivery GL Account");
+         SalesLine.VALIDATE(Quantity, 1);
+         SalesLine.INSERT(TRUE);
+      END;
+    END;
+
+    PROCEDURE OnlyExist@1101489011(VAR SHDR@1101489000 : Record 36);
+    VAR
+      WSH@1101489001 : Record 7320;
+      WHL@1101489002 : Record 7321;
+    BEGIN
+    END;
+
+    PROCEDURE FromTo@1101489014(VAR SaleHeader@1101489000 : Record 36);
+    VAR
+      ReceiptHeader@1101489001 : Record 7316;
+    BEGIN
+    END;
+
+    PROCEDURE CheckItemFloatPrice@1101981001(VAR varSalesLine@1101981000 : Record 37);
+    VAR
+      ItemFloatPrice@1101981001 : Record 50194;
+      usPrice@1101981002 : Decimal;
+      Dlg@1101981003 : Dialog;
+    BEGIN
+
+      ItemFloatPrice.SETRANGE("Item No.",varSalesLine."No.");
+      ItemFloatPrice.SETFILTER("Start Date",'%1|..%2',0D,varSalesLine."Shipment Date");
+      ItemFloatPrice.SETFILTER("End Date",'%1|>=%2',0D,varSalesLine."Shipment Date");
+      IF NOT ItemFloatPrice.FINDLAST THEN
+        EXIT;
+
+      Dlg.OPEN('Цену на товар определяет покупатель\'+
+               'Цена #1################');
+      Dlg.INPUT(1,usPrice);
+
+      IF usPrice=0 THEN
+        EXIT;
+
+      varSalesLine.VALIDATE(varSalesLine."Unit Price",usPrice);
+      varSalesLine.MODIFY;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
