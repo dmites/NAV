@@ -1,0 +1,93 @@
+OBJECT Codeunit 50176 Split Update by Objects
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05.09.12;
+    Time=14:20:44;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+
+            IF NOT CONFIRM ('Вы хотите перенести обновление в репозитарий ?', FALSE) THEN
+              EXIT;
+
+            Path:='c:\Work\NavSource\NAV\';
+            Split;
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      TechMgt@1101981000 : Codeunit 50110;
+      Path@1101981001 : Text[100];
+      FileCount@1101981002 : Integer;
+
+    PROCEDURE Split@1101981001();
+    VAR
+      FileName@1101981000 : Text[300];
+      FromFile@1101981001 : File;
+      ToFile@1101981003 : File;
+      LineTxt@1101981002 : Text[1024];
+      FirstTime@1101981004 : Boolean;
+    BEGIN
+      FileName:=TechMgt.OpenFile('','.TXT');
+
+      IF FileName='' THEN
+        ERROR('Не выбран файл');
+
+      FromFile.TEXTMODE:=TRUE;
+      IF NOT FromFile.OPEN(FileName) THEN
+        ERROR('Не могу открыть файл\%1',FileName);
+
+      FirstTime:=TRUE;
+
+      REPEAT
+        FromFile.READ(LineTxt);
+        IF STRPOS(LineTxt,'OBJECT ')=1 THEN BEGIN
+
+          IF NOT FirstTime THEN
+            ToFile.CLOSE;
+
+          FirstTime:=FALSE;
+
+          ToFile.TEXTMODE:=TRUE;
+          ToFile.CREATE(GetFileName(LineTxt));
+        END;
+
+        ToFile.WRITE(LineTxt);
+
+      UNTIL FromFile.POS=FromFile.LEN;
+
+      FromFile.CLOSE;
+      IF NOT FirstTime THEN
+        ToFile.CLOSE;
+
+      MESSAGE('Разбили успешно на %1 файлов',FileCount);
+    END;
+
+    PROCEDURE GetFileName@1101981003(pLineTxt@1101981001 : Text[1024]) Result : Text[300];
+    VAR
+      ObjectName@1101981002 : Text[300];
+      EndTypePos@1101981003 : Integer;
+      NumberAndName@1101981004 : Text[300];
+      EndNumberPos@1101981005 : Integer;
+      NewFileName@1101981000 : Text[300];
+    BEGIN
+      ObjectName:=COPYSTR(pLineTxt,8);
+      EndTypePos:=STRPOS(ObjectName,' ');
+      NumberAndName:=COPYSTR(ObjectName,EndTypePos+1);
+      EndNumberPos:=STRPOS(NumberAndName,' ')-1;
+
+      Result:=Path+COPYSTR(ObjectName,1,EndTypePos+EndNumberPos)+'.txt';
+      FileCount+=1;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+

@@ -1,0 +1,3090 @@
+OBJECT Codeunit 50111 Work Mgt
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05.09.12;
+    Time=13:26:53;
+    Modified=Yes;
+    Version List=DP,T004;
+  }
+  PROPERTIES
+  {
+    OnRun=VAR
+            SchedulerSetup@1000000000 : Record 99001486;
+            txt@1000000001 : Text[30];
+            Vendor@1000000002 : Record 23;
+            fmPQR@1000000003 : Form 50149;
+            PurchInvHeader@1000000004 : Record 122;
+            VendorAgree@1000000005 : Record 14901;
+            Item@1000000006 : Record 27;
+            SalesHistory@1000000007 : Record 50068;
+            SalesHeader@1000000008 : Record 36;
+            SalesInvHeader@1000000009 : Record 112;
+            NewValue@1000000010 : Text[30];
+            i@1000000011 : Integer;
+            Char@1000000013 : Char;
+            SalesInvLine@1000000012 : Record 113;
+            SalesPrice@1000000014 : Record 7002;
+            SalesPrice2@1000000015 : Record 7002;
+            PQR@1000000016 : Record 50064;
+            VAL@1000000017 : Record 5802;
+            RecordRef@1000000018 : RecordRef;
+            r36@1000000019 : Record 36;
+            UnMgt@1000000020 : Codeunit 50112;
+            ILE@1000000021 : Record 32;
+            File@1000000022 : File;
+            ItemVariant@1000000023 : Record 5401;
+          BEGIN
+            FillShipPrice2();
+
+            EXIT;
+            dlg.OPEN('#1###################################################\'+
+                     '@2@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@' );
+
+
+            FillIAEAgree();
+
+
+            EXIT;
+            ImportBIK();
+
+            EXIT;
+            dlg.OPEN('#1###################################################\'+
+                     '@2@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@' );
+
+            FillIAEAgree();
+            MESSAGE('Dct');
+            EXIT;
+
+            FillItemReceiveType;
+            EXIT;
+
+            FillIAECommPrice;
+
+            EXIT;
+
+            UpdateTrLine();
+            EXIT;
+            GetEmptyVariants();
+            EXIT;
+            Fill1c();
+
+            EXIT;
+
+            ImportItemValues();
+
+            EXIT;
+
+            EXIT;
+
+
+            {Item.FINDLAST;
+            Item."1С Sync DateTime":=Item."1С Sync DateTime"-24*60*60*1000;
+            Item.MODIFY;
+            }
+            ItemVariant.FINDLAST;
+            ItemVariant."1С Sync DateTime":=ItemVariant."1С Sync DateTime"-24*60*60*1000;
+            ItemVariant.MODIFY;
+            EXIT;
+            CorrectPAck;
+
+            EXIT;
+
+            ConvertBankLE();
+            EXIT;
+            ImportZipCode;
+
+            EXIT;
+
+               Fill1c();
+
+            EXIT;
+
+            dlg.OPEN('#1###################################################\'+
+                     '@2@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@' );
+            FillBeginRem;
+            //FillIAEAgree;
+
+            dlg.CLOSE;
+            MESSAGE('Выполнено '+FORMAT(CURRENTDATETIME));
+
+            EXIT;
+
+            MESSAGE(
+
+            UnMgt.LocationByStore(UnMgt.StoreByPOS('1-ЧИП-НАЛ'))
+            );
+
+
+            EXIT;
+
+            NotificateTemplate;
+            EXIT;
+
+            AddReturn2Zreport;
+
+            EXIT;
+
+            ChangeInventoryPAge;
+
+            EXIT;
+            ImportBonus;
+            EXIT;
+
+            ShowAutorItem;
+
+            EXIT;
+
+            FillShipPrice2;
+
+            EXIT;
+
+            ChangeCurrency;
+            MESSAGE('Y');
+            EXIT;
+
+            AddReturn2Zreport() ;
+            EXIT;
+
+            ChangeInventoryPAge;
+
+            EXIT;
+
+            SetStatusLine;
+            EXIT;
+
+            FillVendorReceiptType;
+            EXIT;
+
+            r36.SETRANGE("No.",'SO11-064819');
+            r36.FINDFIRST;
+            r36."Shortcut Dimension 1 Code":='EXIT_RETAIL';
+            r36.MODIFY;
+            EXIT;
+
+            ImportPictures();
+
+            EXIT;
+            MESSAGE('%1',Item.RECORDLEVELLOCKING);
+
+            EXIT;
+
+            CreateExport();
+
+            ;
+            Scaner();
+            EXIT;
+
+            FillShipPrice2()    ;
+            EXIT;
+
+             FillBarcode;
+
+            EXIT;
+
+
+
+            VAL.FINDLAST;
+            RecordRef.GETTABLE(VAL);
+            TechMgt.MessageRec(RecordRef);
+            EXIT;
+            fmPQR.Notificate('ПНЦ-000180');
+            EXIT;
+
+            CreateBonus();
+            EXIT;
+
+            FillAvtorItem();
+            EXIT;
+
+
+            EXIT;
+
+            FillSearchDesc();
+
+            EXIT;
+
+            FillVendorItem();
+            EXIT;
+
+            FillComplect();
+             EXIT;
+
+            CheckDifBonus;
+
+            EXIT;
+            CreateBonus;
+            EXIT;
+            CreateAllVariant();
+
+            EXIT;
+
+
+
+            CreateAllVariant() ;
+
+            EXIT;
+
+            RenameVariantCode();
+
+            EXIT;
+            FilloldVariantCode();
+            EXIT;
+
+
+            SetClientAgree();
+
+            EXIT;
+
+            SalesPrice.SETRANGE("Currency Code",'UAH');
+            IF SalesPrice.FINDSET THEN
+              REPEAT
+                SalesPrice2:=SalesPrice;
+                SalesPrice2."Currency Code":='UAH-У';
+                SalesPrice2.INSERT;
+                SalesPrice.DELETE;
+              UNTIL SalesPrice.NEXT=0;
+            EXIT;
+
+            PurchInvHeader.MODIFYALL(PurchInvHeader."1С Sync DateTime",0DT);
+
+            EXIT;
+
+            CorrectTransactionNo;
+            EXIT;
+            SalesInvHeader.SETRANGE("Posting Date",221011D,231011D);
+            IF SalesInvHeader.FINDSET(TRUE,FALSE) THEN
+
+            REPEAT
+              SalesInvLine.SETRANGE("Document No.",SalesInvHeader."No.");
+              SalesInvLine.MODIFYALL("Salesperson Code",SalesInvHeader."Salesperson Code");
+
+            UNTIL  SalesInvHeader.NEXT=0;
+            EXIT;
+
+            REPEAT
+
+            NewValue:='';
+
+            IF SalesInvHeader."External Document No."<>'' THEN BEGIN
+            FOR i:=1 TO STRLEN(SalesInvHeader."External Document No.")  DO BEGIN
+              IF (COPYSTR(SalesInvHeader."External Document No.",i,1) IN ['a'..'z']) OR
+                 (COPYSTR(SalesInvHeader."External Document No.",i,1) IN ['A'..'Z']) OR
+                 (COPYSTR(SalesInvHeader."External Document No.",i,1) IN ['а'..'я']) OR
+                 (COPYSTR(SalesInvHeader."External Document No.",i,1) IN ['А'..'Я']) OR
+                 (COPYSTR(SalesInvHeader."External Document No.",i,1) IN ['0'..'9'])
+              THEN
+                NewValue+=COPYSTR(SalesInvHeader."External Document No.",i,1);
+
+            END;
+
+            IF NewValue<>SalesInvHeader."External Document No." THEN BEGIN
+              SalesInvHeader."External Document No.":=NewValue;
+              SalesInvHeader.MODIFY;
+            END;
+            END;
+
+            UNTIL  SalesInvHeader.NEXT=0;
+            EXIT;
+
+            FillCategoryCash();
+            EXIT;
+
+            //Day,Month,Month Text, Quarter, Year, Year4, Week, Week Year, Week Year4, Weekday, Weekday Text, Hours24, Hours12, Minutes, Seconds
+            MESSAGE(FORMAT(TODAY,0,'<Day>.<Month>.<Year4>'));
+
+            EXIT;
+
+            SalesHeader.GET(1,'SO11-045552');
+            SalesHeader."Shortcut Dimension 1 Code":='EXIT_RETAIL';
+            SalesHeader.MODIFY;
+            EXIT;
+            SalesHistory.MODIFY;
+            EXIT;
+
+            Correct12401('IT01924');
+
+            EXIT;
+            CorrectVAL('IT01924') ;
+            EXIT;
+
+            CheckMinus();
+            EXIT;
+            FillCost();
+
+            EXIT;
+            FilltransactionStatus;
+            EXIT;
+
+            FillCashLine();
+
+            EXIT;
+
+            FillShipPrice();
+            EXIT;
+
+            FillLPVendorAgree;
+
+            EXIT;
+
+            PurchInvHeader.MODIFYALL(PurchInvHeader."1С Sync DateTime",0DT);
+
+            VendorAgree.MODIFYALL("1С Sync DateTime",0DT);
+            EXIT;
+            fmPQR.PostPQR2('ПНЦ-000002');
+
+
+            EXIT;
+            FillShipIsBill   ;
+            EXIT;
+            FillLPVendorAgree();
+            EXIT;
+            MESSAGE('%1',UnMgt.GetAverageCost('IT00769','БЕЛАЯ L','','..'+FORMAT(060711D)));
+             EXIT;
+            FillCash;
+            EXIT;
+            MESSAGE('[%1]',FORMAT(1.1));
+            EXIT;
+            FillItemTransl;
+
+            EXIT;
+
+            {
+            Vendor.SETFILTER(Vendor."No.",'V0121..');
+            Vendor.MODIFYALL(Vendor.Blocked,Vendor.Blocked::" ");
+            EXIT;       }
+            ImportVendor();
+
+            EXIT;
+            CorrectZ();
+
+
+            EXIT;
+
+            ImportVendor;
+            EXIT;
+
+            CreateUSPrice  ;
+            EXIT;
+
+
+            CheckILE;
+            EXIT;
+
+            TransStore() ;
+            COMMIT;
+               TransformSales('');
+             EXIT;
+            FillBarcodeNo;
+
+            MESSAGE('Настройки для баркодов добавлены успешно');
+
+            EXIT;
+            Send();
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      TechMgt@1000000000 : Codeunit 50110;
+      UnMgt@1000000001 : Codeunit 50112;
+      Excel@1000000002 : Codeunit 50109;
+      dlg@1000000003 : Dialog;
+      DSCOm@1000000004 : Automation "{588568E8-C200-4F70-AF86-E9C8D59FAFBF} 1.0:{11070C81-5D03-4013-B1C5-2E190E0C2D0C}:'DSCom Library'.DSComObj";
+      DSCOmi@1000000005 : Automation "{588568E8-C200-4F70-AF86-E9C8D59FAFBF} 1.0:{3A922D40-C6FC-4C55-AB4A-B16790281327}:'DSCom Library'.IDSComObj";
+
+    PROCEDURE WriteTest@1000000000();
+    VAR
+      techMgt@1000000000 : Codeunit 50110;
+    BEGIN
+      techMgt.WriteDosLog('c:\Work\test.txt','Отработал');
+    END;
+
+    PROCEDURE Copyd@1000000001();
+    BEGIN
+      IF COPY('http://forward/nav.pxml','c:\temp\xxx.xml')
+        THEN MESSAGE('c');
+    END;
+
+    PROCEDURE Send@1000000002();
+    VAR
+      NotificMgt@1000000000 : Codeunit 50114;
+      SchJobHeader@1000000001 : Record 99001586;
+    BEGIN
+      SchJobHeader.Text:='CHECK';
+
+      NotificMgt.RUN(SchJobHeader);
+    END;
+
+    PROCEDURE Execute@1000000003();
+    VAR
+      NotificMgt@1000000000 : Codeunit 50114;
+      SchJobHeader@1000000001 : Record 99001586;
+    BEGIN
+      SchJobHeader.Text:='CHECK';
+
+      NotificMgt.RUN(SchJobHeader);
+    END;
+
+    PROCEDURE TestDBF@1000000004();
+    VAR
+      DBFBase@1000000002 : Automation "{00000200-0000-0010-8000-00AA006D2EA4} 2.0:{00000514-0000-0010-8000-00AA006D2EA4}:'Microsoft ActiveX Data Objects 2.0 Library'.Connection";
+      DBFFile@1000000001 : Automation "{00000205-0000-0010-8000-00AA006D2EA4} 2.5:{00000535-0000-0010-8000-00AA006D2EA4}:'Microsoft ActiveX Data Objects 2.5 Library'.Recordset";
+      DBFFile2@1000000000 : Automation "{00000205-0000-0010-8000-00AA006D2EA4} 2.5:{00000569-0000-0010-8000-00AA006D2EA4}:'Microsoft ActiveX Data Objects 2.5 Library'.Field";
+    BEGIN
+      CREATE(DBFBase);
+      CREATE(DBFFile);
+
+
+      //MESSAGE('%1\%2',DBFBase.Properties,DBFBase.Version);
+      DBFBase.Open('DBF');
+      //DBFBase.Execute('create dbf c:\temp\newdbf (id c(10),name c(50)');
+      EXIT;
+
+      DBFFile.Open('de_calls.dbf',DBFBase); // 'de_calls.dbf' - ??? ?????
+      IF NOT(DBFFile.EOF) THEN DBFFile.MoveFirst();
+      IF NOT(DBFFile.EOF) THEN BEGIN
+      REPEAT
+        //Selected:=DBFFile.Fields().Item('ext_call').Value; //???????? ??????? 'ext_call'
+      DBFFile.MoveNext();
+      UNTIL DBFFile.EOF;
+      END;
+      DBFFile.Close();
+      DBFBase.Close();
+      CLEAR(DBFBase);
+      CLEAR(DBFFile);
+    END;
+
+    PROCEDURE CreateBarcode@1000000005();
+    VAR
+      ItemVariant@1000000000 : Record 5401;
+      cu@1000000001 : Codeunit 50116;
+      Value@1000000002 : Text[30];
+    BEGIN
+      ItemVariant.SETRANGE("Item No.",'IT00953');
+      IF ItemVariant.FINDSET THEN
+        REPEAT
+         Value:=cu.CreateItemVariantBarcode(ItemVariant);
+         MESSAGE(Value);
+        UNTIL ItemVariant.NEXT=0;
+    END;
+
+    PROCEDURE FillBarcodeNo@1000000006();
+    VAR
+      Item@1000000000 : Record 27;
+      InvtSetup@1000000001 : Record 313;
+      NoSeriesMgt@1000000002 : Codeunit 396;
+      ItemVariant@1000000003 : Record 5401;
+      LastItemNo@1000000004 : Code[10];
+      LastBarcodeNo@1000000005 : Code[10];
+      BarcodeMgt@1000000006 : Codeunit 50116;
+      Barcode@1000000007 : Record 50055;
+      ItemMask@1000000008 : Text[30];
+      ItemVariantMask@1000000009 : Text[30];
+    BEGIN
+      //Нумерация всех существующих товаров
+      // для возможности генерации штрихкода
+
+      InvtSetup.GET;
+      IF Item.FINDSET(TRUE,FALSE) THEN
+        REPEAT
+          NoSeriesMgt.InitSeries(InvtSetup."Barcode Nos.",Item."No. Series",0D,Item."No. in Barcode",Item."No. Series");
+          Item.MODIFY;
+        UNTIL Item.NEXT=0;
+
+
+      IF ItemVariant.FINDSET(TRUE) THEN
+        REPEAT
+          IF ItemVariant."Item No."<>LastItemNo THEN
+            ItemVariant."No. in Barcode":='01'
+          ELSE
+            ItemVariant."No. in Barcode":=INCSTR(LastBarcodeNo);
+          ItemVariant.MODIFY;
+
+          LastBarcodeNo:=ItemVariant."No. in Barcode";
+          LastItemNo:=ItemVariant."Item No.";
+
+        UNTIL ItemVariant.NEXT=0;
+
+
+      COMMIT;
+      {   не нужно т.к.
+      при создании новых карточкек менеджер по производству уже сгенерил международный штр-код.
+      в Item Cross Reference
+
+      IF Item.FINDSET THEN
+        REPEAT
+           ItemVariant.SETRANGE("Item No.",Item."No.");
+           IF ItemVariant.FINDSET THEN BEGIN
+             Item."Barcode Mask":=ItemVariantMask;
+             Item.MODIFY;
+             REPEAT
+               CLEAR(Barcode);
+               Barcode."Barcode No.":=BarcodeMgt.CreateItemVariantBarcode(ItemVariant);
+               Barcode."Item No.":=ItemVariant."Item No.";
+               Barcode."Variant Code":=ItemVariant.Code;
+               Barcode.Description:=ItemVariant.Description+ItemVariant."Description 2";
+               Barcode."Last Modified":=CURRENTDATETIME;
+               Barcode."Last User":=USERID;
+               Barcode."Unit of Measure Code":=Item."Base Unit of Measure";
+               Barcode.INSERT;
+             UNTIL  ItemVariant.NEXT=0
+           END ELSE BEGIN
+             Item."Barcode Mask":=ItemMask;
+             Item.MODIFY;
+
+               CLEAR(Barcode);
+               Barcode."Barcode No.":=BarcodeMgt.CreateItemBarcode(Item);
+               Barcode."Item No.":=Item."No.";
+               Barcode."Variant Code":='';
+               Barcode.Description:=Item.Description+Item."Description 2";
+               Barcode."Last Modified":=CURRENTDATETIME;
+               Barcode."Last User":=USERID;
+               Barcode."Unit of Measure Code":=Item."Base Unit of Measure";
+               Barcode.INSERT;
+           END;
+
+        UNTIL Item.NEXT=0;
+      }
+    END;
+
+    PROCEDURE EncodeContact@1000000007();
+    VAR
+      Contact@1000000000 : Record 5050;
+    BEGIN
+      IF Contact.FINDSET(TRUE) THEN
+        REPEAT
+          Contact.Surname:=GetLastName(Contact.Name)      ;
+          Contact."Middle Name":=GetMiddleName(Contact.Name);
+          Contact."First Name":=GetFirstName(Contact.Name);
+          Contact.MODIFY;
+        UNTIL Contact.NEXT=0;
+    END;
+
+    PROCEDURE GetLastName@1000000008(pFullName@1000000000 : Text[100]) : Text[100];
+    VAR
+      Pos@1000000001 : Integer;
+    BEGIN
+      Pos:=STRPOS(pFullName,' ') ;
+      IF Pos>1 THEN
+        EXIT(COPYSTR(pFullName,1,Pos-1));
+
+      EXIT(pFullName);
+    END;
+
+    PROCEDURE GetFirstName@1000000010(pFullName@1000000000 : Text[100]) : Text[100];
+    VAR
+      Pos@1000000001 : Integer;
+      ClearName@1000000002 : Text[100];
+    BEGIN
+      Pos:=STRPOS(pFullName,' ') ;
+      IF Pos>1 THEN
+        ClearName:=COPYSTR(pFullName,Pos+1);  // отрезали фамилию
+
+      IF STRLEN(ClearName)=0 THEN
+        EXIT('');
+
+      Pos:=STRPOS(ClearName,' ') ;
+      IF (Pos>1)  THEN
+        EXIT(COPYSTR(ClearName,1,Pos-1))
+      ELSE
+        EXIT(ClearName);
+
+      EXIT('');
+    END;
+
+    PROCEDURE GetMiddleName@1000000011(pFullName@1000000000 : Text[100]) : Text[100];
+    VAR
+      ClearName@1000000002 : Text[100];
+      Pos@1000000001 : Integer;
+    BEGIN
+      Pos:=STRPOS(pFullName,' ') ;
+      IF Pos>1 THEN
+        ClearName:=COPYSTR(pFullName,Pos+1)  // отрезали фамилию
+      ELSE
+        EXIT('');
+
+
+      Pos:=STRPOS(ClearName,' ') ;
+      IF (Pos>1)  THEN
+        ClearName:=COPYSTR(ClearName,Pos+1)  // отрезали имя
+      ELSE
+        EXIT('');
+
+      IF STRLEN(ClearName)=0 THEN
+        EXIT('');
+
+
+      EXIT(ClearName);
+    END;
+
+    PROCEDURE TransformSales@1000000009(pDocNo@1000000005 : Code[20]);
+    VAR
+      CashHeader@1000000000 : Record 50024;
+      CashLine@1000000001 : Record 50025;
+      TransHeader@1000000002 : Record 99001472;
+      TransSales@1000000003 : Record 99001473;
+      TransPay@1000000004 : Record 99001474;
+      ResponsibilityCenter@1000000006 : Record 5714;
+      sch@1000000007 : Integer;
+    BEGIN
+      IF pDocNo<>'' THEN
+        CashHeader.SETRANGE("No.",pDocNo);
+
+
+      IF CashHeader.FINDSET THEN
+      REPEAT
+
+      IF CashHeader."Document Type"=CashHeader."Document Type"::Order THEN
+        sch+=1;
+        TransHeader.INIT;
+        TransHeader."Store No.":=CashHeader."Responsibility Center";
+        ResponsibilityCenter.GET(CashHeader."Responsibility Center");
+
+        TransHeader."POS Terminal No.":=ResponsibilityCenter."Cash Code";
+        TransHeader."Transaction No.":=GetNextNo(TransHeader."Store No.",TransHeader."POS Terminal No.");
+        TransHeader."Transaction Type":=TransHeader."Transaction Type"::Sales;
+        TransHeader."Receipt No.":=CashHeader."No.";
+        TransHeader.Date:=CashHeader."Fiscalization Date";
+        TransHeader.Time:=CashHeader."Fiscalization Time";
+        TransHeader."Staff ID":=CashHeader."User ID";
+        TransHeader."FR Serial No.":=CashHeader."FR Serial Number";
+        TransHeader."FR Document No.":=CashHeader."FR Receipt No";
+        TransHeader."FR Date":=CashHeader."FR Date";
+        TransHeader."FR Time":=CashHeader."FR Time";
+         CashHeader.CALCFIELDS("Cash Sale Amount");
+        TransHeader."Net Amount":=-CashHeader."Cash Sale Amount";
+        TransHeader."Gross Amount":=-CashHeader."Cash Sale Amount";
+        TransHeader.INSERT(TRUE);
+
+        CashLine.SETRANGE("Cash Check No.",CashHeader."No.");
+
+        IF CashLine.FINDSET THEN
+          REPEAT
+
+            TransSales."Store No.":=TransHeader."Store No.";
+            TransSales."POS Terminal No.":=TransHeader."POS Terminal No.";
+            TransSales."Transaction No.":=TransHeader."Transaction No.";
+            TransSales."Receipt No.":= TransHeader."Receipt No.";
+            TransSales.Date:=TransHeader.Date;
+            TransSales.Time:=TransHeader.Time;
+            TransSales."Line No.":=CashLine."Line No.";
+            TransSales."Item No.":=CashLine."Item No.";
+            TransSales."Variant Code":=CashLine."Variant Code";
+            TransSales.Quantity:=-CashLine.Quantity;
+            TransSales.Price:=CashLine.Price;
+
+            TransSales."Total Rounded Amt.":=-CashLine.Amount;
+            TransSales."Discount Amount":=CashLine."Line Discount Amount";
+            TransSales."Staff ID":=TransHeader."Staff ID";
+
+            TransSales.INSERT(TRUE);
+          UNTIL CashLine.NEXT=0 ;
+            TransPay."Store No.":=TransHeader."Store No.";
+            TransPay."POS Terminal No.":=TransHeader."POS Terminal No.";
+            TransPay."Transaction No.":=TransHeader."Transaction No.";
+            TransPay."Receipt No.":= TransHeader."Receipt No.";
+            TransPay.Date:=TransHeader.Date;
+            TransPay.Time:=TransHeader.Time;
+
+            TransPay."Tender Type":=FORMAT(CashHeader."Pay Type");
+            TransPay."Amount Tendered":=CashHeader."Check Amount";
+            TransPay."Staff ID":=TransHeader."Staff ID";
+            TransPay.Date:=TransHeader.Date;
+            TransPay.Time:=TransHeader.Time;
+            TransPay."FR Document No.":=TransHeader."FR Document No.";
+            TransPay.INSERT(TRUE);
+
+      UNTIL ((CashHeader.NEXT=0) ) ;
+      MESSAGE('Успешно');
+    END;
+
+    PROCEDURE GetNextNo@1000000012(pStore@1000000000 : Code[10];pPos@1000000001 : Code[10]) : Integer;
+    VAR
+      TransHeader@1000000002 : Record 99001472;
+    BEGIN
+      TransHeader.SETRANGE(TransHeader."POS Terminal No.",pPos);
+      TransHeader.SETRANGE(TransHeader."Store No.",pStore);
+      IF TransHeader.FINDLAST THEN
+        EXIT(TransHeader."Transaction No."+1);
+    END;
+
+    PROCEDURE TransStore@1000000013();
+    VAR
+      Store@1000000000 : Record 99001470;
+      ResponsibilityCenter@1000000001 : Record 5714;
+    BEGIN
+       IF ResponsibilityCenter.FINDSET THEN
+         REPEAT
+           Store."No.":=ResponsibilityCenter.Code;
+           Store.Name:=ResponsibilityCenter.Name;
+           Store."Location Code":=ResponsibilityCenter."Location Code";
+           Store.INSERT(FALSE);
+         UNTIL ResponsibilityCenter.NEXT=0;
+    END;
+
+    PROCEDURE CheckILE@1000000014();
+    VAR
+      ILE@1000000000 : Record 32;
+      VAL@1000000001 : Record 5802;
+      Str@1000000002 : Text[250];
+    BEGIN
+      IF VAL.FINDSET THEN
+        REPEAT
+          IF NOT ILE.GET(VAL."Item Ledger Entry No.") THEN BEGIN
+            Str:=STRSUBSTNO('Запись %1 тип операции %2 товар %3 вариант %4 кол-во %5 склад %6',
+            VAL."Item Ledger Entry No.",
+             VAL."Item Ledger Entry Type",
+             VAL."Item No.",
+             VAL."Variant Code",
+             VAL."Invoiced Quantity",
+             VAL."Location Code");
+            TechMgt.WriteWinLog('c:\temp\checkILE.txt',Str);
+          END;
+        UNTIL VAL.NEXT=0;
+      MESSAGE('успешно');
+    END;
+
+    PROCEDURE CreateUSPrice@1000000015();
+    VAR
+      SalesPrice@1000000000 : Record 7002;
+      SalesPrice2@1000000001 : Record 7002;
+    BEGIN
+      SalesPrice.SETRANGE("Sales Code",'C00001');
+      SalesPrice.SETFILTER("Currency Code",'%1','');
+      IF SalesPrice.FINDSET THEN
+        REPEAT
+          SalesPrice2:=SalesPrice;
+          SalesPrice2."Unit Price":=ROUND(SalesPrice."Unit Price"/29,0.01);
+          SalesPrice2."Currency Code":='USD';
+          SalesPrice2."Sales Code":='C00100';
+          IF NOT SalesPrice2.INSERT(TRUE) THEN
+
+            SalesPrice2.MODIFY(TRUE)  ;
+
+        UNTIL SalesPrice.NEXT=0;
+       MESSAGE('Успешно')
+    END;
+
+    PROCEDURE ImportVendor@1000000016();
+    VAR
+      Excel@1000000000 : Codeunit 50109;
+      LastRow@1000000001 : Integer;
+      tVendor@1000000002 : TEMPORARY Record 23;
+      RowNo@1000000003 : Integer;
+      Vendor@1000000004 : Record 23;
+      VendorNo@1000000005 : Code[10];
+      LogTxt@1000000006 : Text[250];
+      LogStr@1000000007 : TextConst 'RUS=Поставщик %1  1С ID %2 ИНН %3 Наименование %4';
+      VendorName@1000000008 : Text[150];
+      insCount@1000000009 : Integer;
+      modCount@1000000010 : Integer;
+    BEGIN
+      Excel.OpenFile('');
+      LastRow:=Excel.GetLastRow;
+      FOR RowNo:=2 TO LastRow DO BEGIN
+        CLEAR(tVendor);
+        tVendor."No.":=Excel.ReadField('E',RowNo);
+        tVendor."1C ID":=Excel.ReadField('A',RowNo);
+        tVendor."VAT Registration No.":=Excel.ReadField('D',RowNo);
+        VendorName:=Excel.ReadField('C',RowNo);
+        tVendor.Name:=COPYSTR(VendorName,1,50);
+        tVendor."Name 2":=COPYSTR(VendorName,51,50);
+
+        tVendor.Priority:=RowNo;
+
+        VendorNo:=GetVendor(tVendor);
+        IF VendorNo='-' THEN BEGIN
+          Vendor.INIT;
+          Vendor."No.":='';
+          Vendor.Name:=tVendor.Name;
+          Vendor."Name 2":=tVendor."Name 2";
+          Vendor."1C ID":=tVendor."1C ID";
+          Vendor."VAT Registration No.":=tVendor."VAT Registration No.";
+          Vendor.INSERT(TRUE);
+          insCount+=1;
+        END ELSE BEGIN
+
+          Vendor.GET(VendorNo);
+          LogTxt:=STRSUBSTNO(LogStr,tVendor."No.",tVendor."1C ID",tVendor."VAT Registration No.",tVendor.Name);
+          TechMgt.WriteDosLog('c:\temp\importVendorLog.txt','Было  '+LogTxt);
+
+          IF tVendor."1C ID"<>'' THEN
+            Vendor."1C ID":= tVendor."1C ID";
+
+          IF tVendor."VAT Registration No."<>'' THEN
+            Vendor."VAT Registration No.":=tVendor."VAT Registration No.";
+
+          Vendor.Name:=tVendor.Name;
+          Vendor."Name 2":=tVendor."Name 2";
+
+          Vendor.MODIFY;
+          LogTxt:=STRSUBSTNO(LogStr,tVendor."No.",tVendor."1C ID",tVendor."VAT Registration No.",tVendor.Name);
+          TechMgt.WriteDosLog('c:\temp\importVendorLog.txt','Стало '+LogTxt);
+          TechMgt.WriteDosLog('c:\temp\importVendorLog.txt',' ');
+          modCount+=1;
+        END;
+
+
+      END;
+      MESSAGE('Загружено %1\Обновлено %2',insCount,modCount);
+    END;
+
+    PROCEDURE GetVendor@1000000018(pRec@1000000000 : Record 23) : Code[10];
+    VAR
+      Vendor@1000000001 : Record 23;
+    BEGIN
+      CLEAR(Vendor);
+
+      IF pRec."No."<>'' THEN
+        IF Vendor.GET(pRec."No.") THEN
+          EXIT(Vendor."No.")
+        ELSE
+          ERROR('ошибка в строке %1\Не найден поставщик с кодом %2',pRec.Priority, pRec."No.");
+
+      CLEAR(Vendor);
+      IF pRec."1C ID"<>'' THEN BEGIN
+
+        Vendor.SETRANGE("1C ID",pRec."1C ID") ;
+
+        CASE TRUE OF
+          (Vendor.COUNT=1) :
+            BEGIN
+              Vendor.FINDFIRST;
+              EXIT(Vendor."No.");
+            END;
+          (Vendor.COUNT>1) :
+            ERROR('ошибка в строке %1\Существует больше одного поставщика с 1С кодом %2',pRec.Priority, pRec."1C ID");
+          (Vendor.COUNT=0): ;  // поищем еще по инн
+        END;
+      END;
+
+      CLEAR(Vendor);
+      IF pRec."VAT Registration No."<>'' THEN BEGIN
+         Vendor.SETRANGE("VAT Registration No.",pRec."VAT Registration No.") ;
+         CASE TRUE OF
+          (Vendor.COUNT=1):
+            BEGIN
+              Vendor.FINDFIRST;
+              EXIT(Vendor."No.")
+            END;
+          (Vendor.COUNT>1) :
+            ERROR('ошибка в строке %1\Существует больше одного поставщика с ИНН %2',pRec.Priority, pRec."VAT Registration No.");
+         END;
+      END;
+
+
+      EXIT('-');  // нет с такими данными, значит новый
+    END;
+
+    PROCEDURE ExportVendor@1000000017();
+    VAR
+      File@1000000000 : File;
+      OutStream@1000000001 : OutStream;
+      xmlVendor@1000000002 : XMLport 50006;
+      Vendor@1000000003 : Record 23;
+    BEGIN
+      File.CREATE('c:\temp\textexport.xml');
+      File.CREATEOUTSTREAM(OutStream);
+      Vendor.SETFILTER(Vendor."No.",'..%1','V0035');
+      XMLPORT.EXPORT(50006,OutStream,Vendor)
+    END;
+
+    PROCEDURE CorrectZ@1000000019();
+    VAR
+      ZReport@1000000001 : Record 50026;
+      ZReportLines@1000000000 : Record 50029;
+      CashHeader@1000000002 : Record 50024;
+      CurrentZReportLineNo@1000000003 : Integer;
+    BEGIN
+
+      ZReport.SETRANGE("Responsibility Center",'М-МАГАЗИН');
+      ZReport.SETRANGE("Z-Date",031011D);
+
+      IF ZReport.FINDSET THEN
+        REPEAT
+
+         CashHeader.RESET;
+         CashHeader.SETRANGE("Responsibility Center", ZReport."Responsibility Center");
+         CashHeader.SETRANGE("Print Date",ZReport."Z-Date");
+
+
+         IF CashHeader.FIND('-') THEN BEGIN
+
+           CurrentZReportLineNo := 0;
+
+           ZReportLines.SETRANGE("No.",ZReport."No.") ;
+           ZReportLines.DELETEALL(TRUE);
+
+           REPEAT
+             CashHeader.Fiscaled := TRUE;
+             CashHeader."Fiscalization By" := ZReport.User;
+             CashHeader."Fiscalization Date" := ZReport."Z-Date";
+             CashHeader."Fiscalization Time" :=ZReport."Z-Time";
+             CashHeader."Z Report No." := ZReport."No.";
+             CashHeader.MODIFY;
+
+             ZReportLines.INIT;
+             ZReportLines."No." := ZReport."No.";
+             CurrentZReportLineNo +=1;
+             ZReportLines."Line No." := CurrentZReportLineNo;
+             ZReportLines."Cash Check No." := CashHeader."No.";
+             ZReportLines."Document Type" := CashHeader."Document Type";
+             ZReportLines."Sales Document No." := CashHeader."Sales Document No.";
+             ZReportLines."Pay Type" := CashHeader."Pay Type";
+             CashHeader.CALCFIELDS("Cash Sale Amount");
+             ZReportLines."Check Amount" := CashHeader."Cash Sale Amount";
+             ZReportLines."Print Date" := CashHeader."Print Date";
+             ZReportLines.INSERT(TRUE);
+           UNTIL CashHeader.NEXT =0;
+
+          END;
+
+        UNTIL ZReport.NEXT=0;
+
+      MESSAGE('Успешно');
+    END;
+
+    PROCEDURE FillPos@1000000020();
+    VAR
+      CashHeader@1000000000 : Record 50024;
+      PostSalesHeader@1000000001 : Record 112;
+      PaymentMethod@1000000002 : Record 289;
+      PostReturnHeader@1000000003 : Record 114;
+    BEGIN
+      {
+      CashHeader.setrange("Document Type",CashHeader."Document Type"::"Order");
+      if CashHeader.FINDSET then
+      REPEAT
+        PostSalesHeader.SETRANGE("Order No.",CashHeader."Sales Document No.");
+        IF PostSalesHeader.FINDSET THEN BEGIN
+          // DP пишем кассу в чек >>
+          IF PaymentMethod.GET(PostSalesHeader."Payment Method Code") THEN
+            IF PaymentMethod."Bal. Account Type"=PaymentMethod."Bal. Account Type"::"Bank Account" THEN
+              CashHeader.POS:=PaymentMethod."Bal. Account No.";
+          // DP пишем кассу в чек <<
+          CashHeader.MODIFY;
+        END;
+
+      UNTIL CashHeader.NEXT=0;
+      }
+
+      CashHeader.SETRANGE("Document Type",CashHeader."Document Type"::"Return Order");
+      IF CashHeader.FINDSET THEN
+
+      REPEAT
+        PostReturnHeader.SETRANGE("Return Order No.",CashHeader."Sales Document No.");
+        IF PostReturnHeader.FINDSET THEN BEGIN
+          // DP пишем кассу в чек >>
+          IF PaymentMethod.GET(PostReturnHeader."Payment Method Code") THEN
+            IF PaymentMethod."Bal. Account Type"=PaymentMethod."Bal. Account Type"::"Bank Account" THEN
+              CashHeader.POS:=PaymentMethod."Bal. Account No.";
+          // DP пишем кассу в чек <<
+          CashHeader.MODIFY;
+        END;
+
+      UNTIL CashHeader.NEXT=0;
+
+      MESSAGE('dd');
+    END;
+
+    PROCEDURE FillItemTransl@1000000022();
+    VAR
+      ItemTranslation@1000000000 : Record 30;
+      Item@1000000001 : Record 27;
+    BEGIN
+      IF Item.FINDSET THEN
+        REPEAT
+          ItemTranslation.SETRANGE("Item No.",Item."No.");
+          IF ItemTranslation.FINDSET(TRUE,FALSE) THEN
+            REPEAT
+              ItemTranslation."Item Category Code 2":=Item."Item Category Code 2";
+              ItemTranslation."Product Group Code 2":=Item."Product Group Code 2";
+              ItemTranslation."Item Category Code 3":=Item."Item Category Code 3";
+              ItemTranslation."Product Group Code 3":=Item."Product Group Code 3";
+              ItemTranslation."Item Category Code 4":=Item."Item Category Code 4";
+              ItemTranslation."Product Group Code 4":=Item."Product Group Code 4";
+              ItemTranslation.MODIFY;
+              //MESSAGE('%1',Item."Item Category Code 2");
+           UNTIL ItemTranslation.NEXT=0;
+
+        UNTIL Item.NEXT=0;
+    END;
+
+    PROCEDURE FillCash@1000000021();
+    VAR
+      CashHeader@1000000000 : Record 50024;
+      i@1000000001 : Integer;
+      ResponsibilityCenter@1000000002 : Record 5714;
+    BEGIN
+      CashHeader.SETCURRENTKEY("Responsibility Center","Print Date","Print Time");
+      IF ResponsibilityCenter.FINDSET THEN
+        REPEAT
+          CashHeader.SETRANGE("Responsibility Center",ResponsibilityCenter.Code);
+      IF CashHeader.FINDSET THEN
+        REPEAT
+          i+=1;
+          CashHeader."Entry No.":=i;
+          CashHeader.MODIFY;
+        UNTIL CashHeader.NEXT=0;
+      UNTIL ResponsibilityCenter.NEXT=0;
+    END;
+
+    PROCEDURE FillLPVendorAgree@1000000023();
+    VAR
+      VendorAgreement@1000000000 : Record 14901;
+      Vendor@1000000001 : Record 23;
+      modcount@1000000002 : Integer;
+      totalcount@1000000003 : Integer;
+    BEGIN
+      VendorAgreement.SETFILTER("Legal PErson Code",'%1','');
+      IF  VendorAgreement.FINDSET(TRUE,FALSE) THEN
+        REPEAT
+          Vendor.GET(VendorAgreement."Vendor No.");
+          IF Vendor."Legal Person Code"<>'' THEN BEGIN
+            VendorAgreement."Legal PErson Code":=Vendor."Legal Person Code";
+            VendorAgreement.MODIFY;
+            modcount+=1;
+          END;
+          totalcount+=1;
+        UNTIL VendorAgreement.NEXT=0;
+      MESSAGE('Поправили %1\Всего %1',modcount,totalcount);
+    END;
+
+    PROCEDURE FillShipIsBill@1000000024();
+    VAR
+      SalesHeader@1000000000 : Record 36;
+    BEGIN
+       SalesHeader.MODIFYALL(SalesHeader."Ship is Bill",TRUE);
+    END;
+
+    PROCEDURE FillShipPrice@1000000025();
+    VAR
+      TransHeader@1000000000 : Record 5740;
+      Customer@1000000001 : Record 18;
+      UnMgt@1000000002 : Codeunit 50112;
+      TransLine@1000000003 : Record 5741;
+    BEGIN
+
+      IF TransLine.FINDSET(TRUE,FALSE) THEN
+        REPEAT
+          IF  TransHeader.GET(TransLine."Document No.")  THEN BEGIN
+
+      IF    TransHeader.CCN='' THEN
+        IF STRPOS(TransHeader."Transfer-to Code",'PARTNER')=0 THEN BEGIN
+
+
+        TransLine."Sales Price":=UnMgt.GetSalesPrice(TransLine."Item No.",
+                                           TransLine."Variant Code",
+                                           'РОЗНИЧНЫЙ',
+                                           '',
+                                           TransHeader."Posting Date");
+        TransLine."Sales Amount":=TransLine.Quantity*TransLine."Sales Price";
+        TransLine.MODIFY;
+
+        END;
+      END;
+      UNTIL TransLine.NEXT=0;
+    END;
+
+    PROCEDURE FillCashLine@1000000026();
+    VAR
+      CheckLine@1000000000 : Record 50025;
+      SalesInvHeader@1000000001 : Record 112;
+      SalesInvLine@1000000002 : Record 113;
+      CheckLine2@1000000003 : Record 50025;
+      CheckHeader@1000000004 : Record 50024;
+    BEGIN
+      CheckLine.SETFILTER("Item No.",'%1','');
+      IF CheckLine.FINDSET THEN
+        REPEAT
+          CheckHeader.SETRANGE("No.",CheckLine."Cash Check No.");
+          IF CheckHeader.FINDFIRST THEN BEGIN
+            SalesInvHeader.SETRANGE("Order No.",CheckHeader."Sales Document No.");
+          IF SalesInvHeader.FINDFIRST THEN BEGIN
+          SalesInvLine.SETRANGE(SalesInvLine."Document No.",SalesInvHeader."No.");
+          SalesInvLine.SETRANGE(Quantity,CheckLine.Quantity);
+          SalesInvLine.SETRANGE("Amount Including VAT",CheckLine.Amount);
+          IF SalesInvLine.FINDFIRST THEN BEGIN
+            CheckLine2:=CheckLine;
+            CheckLine2."Item No.":=SalesInvLine."No.";
+            CheckLine2."Variant Code":=SalesInvLine."Variant Code";
+            CheckLine2."Responsibility Center":=SalesInvHeader."Responsibility Center";
+            CheckLine2."Document Type":=CheckLine2."Document Type"::Order;
+            CheckLine2."Sales Document No.":=SalesInvHeader."Order No.";
+            CheckLine2."Print Date":=SalesInvHeader."Posting Date";
+            CheckLine2."Print Time":=SalesInvHeader."Time Sent";
+            IF SalesInvLine.Type=SalesInvLine.Type::Item THEN
+              CheckLine2.Type:=CheckLine2.Type::Item
+            ELSE
+              CheckLine2.Type:=CheckLine2.Type::Service;
+
+
+          CheckLine2."User ID":=SalesInvHeader."Salesperson Code";
+
+          IF SalesInvLine.Type=SalesInvLine.Type::Item THEN
+            CheckLine2."Cost Amount":=UnMgt.GetAverageCost(CheckLine2."Item No.",CheckLine2."Variant Code",'',
+                                                  '..'+FORMAT(SalesInvHeader."Posting Date"));
+          CheckLine2.MODIFY;
+          END;
+        END;
+        END;
+        UNTIL CheckLine.NEXT=0;
+      MESSAGE('Успешно');
+    END;
+
+    PROCEDURE FilltransactionStatus@1000000027();
+    VAR
+      Header@1000000000 : Record 50024;
+      Line@1000000001 : Record 50025;
+    BEGIN
+      IF Header.FINDSET(TRUE,FALSE) THEN
+        REPEAT
+          CASE TRUE OF
+
+            Header.Fiscaled :
+              BEGIN
+                Header.Status:=Header.Status::Posted;
+                Header.MODIFY;
+                Line.SETRANGE("Cash Check No.",Header."No.");
+                Line.MODIFYALL(Status,Line.Status::Posted);
+              END;
+
+           (NOT Header.Fiscaled) AND (Header."FR Mode"=Header."FR Mode"::CloseCheck) :
+             BEGIN
+                Header.Status:=Header.Status::Normal;
+                Header.MODIFY;
+                Line.SETRANGE("Cash Check No.",Header."No.");
+                Line.MODIFYALL(Status,Line.Status::Normal);
+             END;
+
+           ELSE
+             BEGIN
+                Header.Status:=Header.Status::Cancel;
+                Header.MODIFY;
+                Line.SETRANGE("Cash Check No.",Header."No.");
+                Line.MODIFYALL(Status,Line.Status::Cancel);
+             END;
+          END;
+
+        UNTIL Header.NEXT=0;
+      MESSAGE('Успешно');
+    END;
+
+    PROCEDURE FillCost@1000000028();
+    VAR
+      CheckLine@1000000000 : Record 50025;
+      Item@1000000001 : Record 27;
+    BEGIN
+      IF CheckLine.FINDSET THEN
+        REPEAT
+        IF CheckLine.Status<>CheckLine.Status::Cancel THEN
+          IF CheckLine.Type=CheckLine.Type::Item THEN
+             IF CheckLine."Item No."<>'' THEN BEGIN
+
+               IF CheckLine."Print Date"=0D THEN
+                CheckLine."Print Date":=GetDate(CheckLine."Cash Check No.");
+
+               CheckLine."Cost Amount":=UnMgt.GetAverageCost(CheckLine."Item No.",
+                                                    CheckLine."Variant Code",
+                                                    '',
+                                                    '..'+FORMAT(CheckLine."Print Date"));
+
+
+               IF CheckLine."Cost Amount"=0 THEN BEGIN
+               CheckLine."Cost Amount":=UnMgt.GetLastCost(CheckLine."Item No.",
+                                                    CheckLine."Variant Code",
+                                                    '',
+                                                    '..'+FORMAT(CheckLine."Print Date"));
+
+               END;
+
+               CheckLine."Cost Amount":=CheckLine."Cost Amount"*CheckLine.Quantity;
+               CheckLine.MODIFY;
+             END;
+        UNTIL CheckLine.NEXT=0;
+      MESSAGE('Успешно');
+    END;
+
+    PROCEDURE GetDate@1000000029(pCheckNo@1000000000 : Code[20]) : Date;
+    VAR
+      SalesInvHeader@1000000002 : Record 112;
+      CheckHeader@1000000001 : Record 50024;
+      ReturnInvHeader@1000000003 : Record 114;
+    BEGIN
+      CheckHeader.SETRANGE("No.",pCheckNo);
+      IF CheckHeader.FINDFIRST THEN BEGIN
+        SalesInvHeader.SETRANGE("Order No.",CheckHeader."Sales Document No.");
+        IF SalesInvHeader.FINDFIRST THEN
+          EXIT(SalesInvHeader."Posting Date");
+      END;
+
+      IF CheckHeader.FINDFIRST THEN BEGIN
+        ReturnInvHeader.SETRANGE("Return Order No.",CheckHeader."Sales Document No.");
+        IF ReturnInvHeader.FINDFIRST THEN
+          EXIT(ReturnInvHeader."Posting Date");
+      END;
+
+      ERROR('Не нашел дату чека %1',pCheckNo);
+    END;
+
+    PROCEDURE CheckMinus@1000000030();
+    VAR
+      Header@1000000001 : Record 50024;
+      Line@1000000000 : Record 50025;
+    BEGIN
+      IF Header.FINDSET(TRUE,FALSE) THEN
+        REPEAT
+                Line.SETRANGE("Cash Check No.",Header."No.");
+                Line.MODIFYALL("Sales Document No.",Header."Sales Document No.") ;
+                Line.MODIFYALL("Print Date",Header."Print Date");
+                Line.MODIFYALL("Print Time",Header."Print Time");
+          {
+          CASE Header."Document Type" OF
+
+
+
+            Header."Document Type"::"Return Order" :
+              BEGIN
+                IF Header."Transaction Type"=Header."Transaction Type"::Sales THEN BEGIN
+                  Header."Transaction Type":=Header."Transaction Type"::Return;
+                  Header.MODIFY;
+                END;
+                {
+                IF Line.FINDSET(TRUE,FALSE) THEN
+                  REPEAT
+                    Line.Quantity:=-ABS(Line.Quantity);
+                    Line.Amount:=-ABS(Line.Amount);
+                    Line."Line Discount Amount":=-ABS(Line."Line Discount Amount");
+                    Line."Cost Amount":=-ABS(Line."Cost Amount");
+                    Line.MODIFY;
+                  UNTIL Line.NEXT=0;}
+                END;
+           END;
+
+      }
+        UNTIL Header.NEXT=0;
+      MESSAGE('Успешно');
+    END;
+
+    PROCEDURE CorrectVAL@1000000031(pItemNo@1000000005 : Code[10]);
+    VAR
+      ValueEntry@1000000000 : Record 5802;
+      r17@1000000001 : Record 17;
+      koef@1000000002 : Decimal;
+      r12401@1000000003 : Record 12401;
+      oldvalue@1000000006 : Decimal;
+      r172@1000000004 : Record 17;
+      r124012@1000000007 : Record 12401;
+      rangvalue@1000000008 : Decimal;
+    BEGIN
+
+      ValueEntry.SETRANGE("Item No.",pItemNo);
+      ValueEntry.SETRANGE(ValueEntry."Item Ledger Entry Type",ValueEntry."Item Ledger Entry Type"::Transfer);
+      IF ValueEntry.FINDSET(FALSE,FALSE) THEN
+        REPEAT
+
+      {
+
+          {
+          ValueEntry."Cost Amount (Actual)":=ValueEntry."Cost per Unit"*ValueEntry."Invoiced Quantity";
+
+
+
+
+          ValueEntry."Cost Posted to G/L":=ValueEntry."Cost Amount (Actual)";
+          ValueEntry.MODIFY;
+           }
+
+      koef:=5.74/166.2;
+
+
+      r17.SETRANGE("Document No.",ValueEntry."Document No.");
+      rangvalue:=ROUND(ValueEntry."Cost Amount (Actual)"/koef,1);
+
+      r17.SETRANGE(Amount,rangvalue-0.8,rangvalue+0.8);
+
+      IF r17.FINDSET(TRUE,FALSE) THEN
+        REPEAT
+          r172:=r17;
+          oldvalue:=r17."Credit Amount";
+          r172.Amount:=r17.Amount*koef;
+          r172."Credit Amount":=ROUND(r17."Credit Amount"*koef,0.01);
+          r172."Debit Amount":=ROUND(r17."Debit Amount"*koef,0.01);
+          r172.MODIFY;
+          TechMgt.WriteDosLog('C:\temp\gllog.txt','В 17 '+FORMAT(r172."Document No.")+' запись '+FORMAT(r172."Entry No.")+
+                            'Поменял  '+FORMAT(oldvalue)+' на '+FORMAT(r172."Credit Amount"));
+        UNTIL r17.NEXT=0
+      ELSE
+        MESSAGE(r17.GETFILTERS);
+
+
+       }
+      koef:=5.74/166.2;
+      r12401.SETRANGE("Document No.",ValueEntry."Document No.");
+      //r12401.SETRANGE(Amount,rangvalue-0.8,rangvalue+0.8);
+
+      IF r12401.FINDSET(TRUE,FALSE) THEN
+        REPEAT
+          r124012:=r12401;
+          oldvalue:=r12401.Amount;
+
+          r124012.Amount:=ROUND(r12401.Amount/koef,0.01);
+          TechMgt.WriteDosLog('C:\temp\gllog.txt','В 12401 '+FORMAT(r124012."Document No.")+' запись '+FORMAT(r124012."Entry No.")+
+                            'Поменял  '+FORMAT(oldvalue)+' на '+FORMAT(r124012.Amount));
+
+
+          r124012.MODIFY;
+        UNTIL r12401.NEXT=0;
+
+      UNTIL ValueEntry.NEXT=0;
+    END;
+
+    PROCEDURE Correct12401@1000000033(pItemNo@1000000005 : Code[10]);
+    VAR
+      ValueEntry@1000000000 : Record 5802;
+      r17@1000000001 : Record 17;
+      koef@1000000002 : Decimal;
+      r12401@1000000003 : Record 12401;
+      oldvalue@1000000006 : Decimal;
+      r172@1000000004 : Record 17;
+      r124012@1000000007 : Record 12401;
+      rangvalue@1000000008 : Decimal;
+    BEGIN
+
+      ValueEntry.SETRANGE("Item No.",pItemNo);
+      ValueEntry.SETRANGE(ValueEntry."Item Ledger Entry Type",ValueEntry."Item Ledger Entry Type"::Transfer);
+      IF ValueEntry.FINDSET(FALSE,FALSE) THEN
+        REPEAT
+      r12401.SETRANGE("Document No.",ValueEntry."Document No.");
+
+      IF r12401.FINDSET(TRUE,FALSE) THEN
+        REPEAT
+          r17.SETRANGE("Document No.",ValueEntry."Document No.");
+          r17.SETRANGE("Entry No.",r12401."Debit Entry No.");
+
+          IF r17.FINDSET THEN BEGIN
+            r124012:=r12401;
+
+            oldvalue:=r12401.Amount;
+
+            r124012.Amount:=r17.Amount;
+
+          TechMgt.WriteDosLog('C:\temp\glog_fin.txt','В 12401 '+FORMAT(r124012."Document No.")+' запись '+FORMAT(r124012."Entry No.")+
+                            'Поменял  '+FORMAT(oldvalue)+' на '+FORMAT(r124012.Amount));
+
+
+          r124012.MODIFY;
+         END;
+        UNTIL r12401.NEXT=0;
+
+      UNTIL ValueEntry.NEXT=0;
+    END;
+
+    PROCEDURE FillCategoryCash@1000000032();
+    VAR
+      CheckHeader@1000000000 : Record 50024;
+      CheckLine@1000000001 : Record 50025;
+      Item@1000000002 : Record 27;
+    BEGIN
+      CheckLine.SETRANGE(Status,1,100);
+      IF CheckLine.FINDSET(TRUE,FALSE) THEN
+      REPEAT
+
+        IF CheckLine."Print Date"=0D THEN BEGIN
+          IF CheckHeader.GET(CheckLine."Document Type",CheckLine."Cash Check No.") THEN BEGIN
+          CheckLine."Print Date":=CheckHeader."Print Date";
+          CheckLine."Print Time":=CheckHeader."Print Time";
+          END ELSE BEGIN
+            IF CheckHeader.GET(CheckLine."Document Type"::Order,CheckLine."Cash Check No.") THEN BEGIN
+              CheckLine."Document Type":=CheckLine."Document Type"::Order;
+              CheckLine."Print Date":=CheckHeader."Print Date";
+              CheckLine."Print Time":=CheckHeader."Print Time";
+            END ELSE
+              ERROR('Не найден %1 %2',CheckLine."Document Type",CheckLine."Cash Check No.");
+
+          END;
+        END;
+        IF CheckLine."Print Date"=0D THEN
+          CheckLine."Print Date":=TODAY;
+
+        IF Item.GET(CheckLine."Item No.") THEN BEGIN
+          IF  CheckLine."Cost Amount"=0 THEN BEGIN
+              CheckLine."Cost Amount":=UnMgt.GetAverageCost(CheckLine."Item No.",
+                                                          CheckLine."Variant Code",
+                                                          '',
+                                                          '..'+FORMAT(CheckLine."Print Date"));
+
+
+                IF CheckLine."Cost Amount"=0 THEN
+               CheckLine."Cost Amount":=UnMgt.GetLastCost(CheckLine."Item No.",
+                                                          CheckLine."Variant Code",
+                                                          '',
+                                                          '..'+FORMAT(CheckLine."Print Date"));
+
+          END;
+
+          CheckLine."Item Category":=Item."Item Category Code 2";
+          CheckLine."Item Group":=Item."Product Group Code 2";
+          CheckLine."Item Production Type":=Item."Production Type";
+
+          CheckLine.MODIFY;
+        END;
+
+      UNTIL  CheckLine.NEXT=0   ;
+
+      MESSAGE('Успешно');
+    END;
+
+    PROCEDURE CorrectTransactionNo@1000000034();
+    VAR
+      Header@1000000000 : Record 50024;
+      Line@1000000001 : Record 50025;
+      RespCenter@1000000002 : Record 5714;
+      Header2@1000000003 : Record 50024;
+      EntryNo@1000000004 : Integer;
+    BEGIN
+      Header.SETCURRENTKEY("Responsibility Center","Print Date","Print Time");
+
+      IF RespCenter.FINDSET THEN
+        REPEAT
+          Header.SETRANGE("Responsibility Center",RespCenter.Code);
+
+          IF Header.FINDSET(FALSE,FALSE) THEN
+            REPEAT
+
+              IF Header."Entry No."<>EntryNo THEN BEGIN
+                Header2:=Header;
+                Header2."Entry No.":=EntryNo;
+                Header2.MODIFY;
+              END;
+              EntryNo+=1;
+
+              IF EntryNo MOD 50 =0 THEN
+                COMMIT;
+            UNTIL Header.NEXT=0;
+
+        UNTIL RespCenter.NEXT=0
+    END;
+
+    PROCEDURE GetEntryNo@1000000035() : Integer;
+    VAR
+      Header@1000000000 : Record 50024;
+    BEGIN
+      Header.SETCURRENTKEY("Responsibility Center","Entry No.");
+      IF Header.FINDLAST THEN
+        EXIT(Header."Entry No."+1);
+
+      EXIT(1);
+    END;
+
+    PROCEDURE SetClientAgree@1000000036();
+    VAR
+      Agree@1000000000 : Record 14902;
+      Num@1000000001 : Code[10];
+      Agree2@1000000002 : Record 14902;
+      Customer@1000000003 : Record 18;
+      CustLE@1000000004 : Record 21;
+    BEGIN
+      Num:='AGR0000001';
+      Agree.SETFILTER("No.",'%1','');
+      IF Agree.FINDSET(TRUE) THEN
+        REPEAT
+          Customer.GET(Agree."Customer No.");
+          IF Customer."Agreement Posting"=Customer."Agreement Posting"::Mandatory THEN BEGIN
+            Agree2:=Agree;
+            Agree2."No.":=Num;
+            Agree2.INSERT;
+            CustLE.SETRANGE("Customer No.",Agree."Customer No.");
+            CustLE.SETFILTER("Agreement No.",'%1','');
+            CustLE.MODIFYALL("Agreement No.",Num);
+            Agree.DELETE;
+            Num:=INCSTR(Num);
+          END;
+        UNTIL Agree.NEXT=0;
+    END;
+
+    PROCEDURE ImportUSAItemDesc@1000000037();
+    VAR
+      LastRow@1000000000 : Integer;
+      ItemNo@1000000001 : Code[10];
+      Item@1000000002 : Record 27;
+      ItemVariant@1000000003 : Record 5401;
+      ItemTranslation@1000000004 : Record 30;
+      RowNo@1000000005 : Integer;
+      Variant@1000000006 : Text[30];
+      Desc@1000000007 : Text[60];
+    BEGIN
+      Excel.OpenFile('');
+      LastRow:=Excel.GetLastRow;
+
+      FOR RowNo:=2 TO LastRow DO BEGIN
+        ItemNo:=Excel.ReadField('A',RowNo);
+        Variant:=Excel.ReadField('B',RowNo);
+        IF Item.GET(ItemNo) THEN BEGIN
+          IF UnMgt.ItemVariantExists(ItemNo) THEN
+            Excel.SetCell(4,RowNo,'Есть варианты');
+          CLEAR(ItemTranslation);
+          ItemTranslation."Item No.":=ItemNo;
+          ItemTranslation."Variant Code":=Variant;
+          ItemTranslation."Language Code":='ENU';
+          Desc:=Excel.ReadField('C',RowNo);
+          IF  Excel.ReadField('D',RowNo)<>'' THEN
+            Desc:=Desc+' '+Excel.ReadField('D',RowNo);
+
+          ItemTranslation.Description:=COPYSTR(Desc,1,30);
+          ItemTranslation."Description 2":=COPYSTR(Desc,31,30);
+
+          IF ItemTranslation.INSERT(TRUE) THEN;
+        END;
+      END;
+    END;
+
+    PROCEDURE FilloldVariantCode@1000000038();
+    VAR
+      ItemVariant@1000000000 : Record 5401;
+    BEGIN
+      IF ItemVariant.FINDSET(TRUE) THEN
+        REPEAT
+          ItemVariant."Old Code":=ItemVariant.Code;
+          ItemVariant.MODIFY;
+        UNTIL ItemVariant.NEXT=0;
+    END;
+
+    PROCEDURE RenameVariantCode@1000000039();
+    VAR
+      ItemVariant@1000000000 : Record 5401;
+      NewCode@1000000001 : Code[10];
+      CurrItem@1000000002 : Code[20];
+    BEGIN
+      NewCode:='V000001';
+
+      //ItemVariant.SETRANGE("Item No.",'IT00071');
+
+      IF ItemVariant.FINDSET(TRUE,TRUE) THEN
+        REPEAT
+          IF ItemVariant."Item No."<>CurrItem THEN BEGIN
+            CurrItem:=ItemVariant."Item No.";
+            COMMIT;
+          END;
+
+          ItemVariant.RENAME(ItemVariant."Item No.",NewCode);
+          //ItemVariant.MODIFY;
+          NewCode:=INCSTR(NewCode);
+        UNTIL ItemVariant.NEXT=0;
+
+      COMMIT;
+      MESSAGE('Успешно');
+    END;
+
+    PROCEDURE CreateAllVariant@1000000040();
+    VAR
+      Item@1000000000 : Record 27;
+      ItemVariant@1000000001 : Record 5401;
+      ItemTrans@1000000002 : Record 30;
+      ItemTrans2@1000000039 : Record 30;
+      ILE@1000000003 : Record 32;
+      VAL@1000000004 : Record 5802;
+      ShipLine@1000000006 : Record 111;
+      SaleInvLine@1000000005 : Record 113;
+      CrMemoLine1@1000000007 : Record 115;
+      RcptLine@1000000008 : Record 121;
+      PurchInvLine@1000000009 : Record 123;
+      CrMemoLine2@1000000010 : Record 125;
+      IJLine@1000000011 : Record 83;
+      Inventory@1000000012 : Record 281;
+      ReservEntry@1000000013 : Record 337;
+      CrossRef@1000000014 : Record 5717;
+      CrossRef2@1000000032 : Record 5717;
+      TransferLine@1000000015 : Record 5741;
+      TransShipLine@1000000016 : Record 5745;
+      TransReceiptLine@1000000017 : Record 5747;
+      r5804@1000000018 : Record 5804;
+      r5804_2@1000000033 : Record 5804;
+      ReturnShipLine@1000000019 : Record 6651;
+      ReturnReceiptLine@1000000020 : Record 6661;
+      SalesPrice@1000000021 : Record 7002;
+      SalesPrice2@1000000034 : Record 7002;
+      r7319@1000000022 : Record 7319;
+      r7321@1000000023 : Record 7321;
+      r7317@1000000037 : Record 7317;
+      r7323@1000000024 : Record 7323;
+      r12455@1000000025 : Record 12455;
+      CashLine@1000000026 : Record 50025;
+      ZLines@1000000027 : Record 50029;
+      LAbelsline@1000000028 : Record 50057;
+      PQRLINE@1000000029 : Record 50065;
+      ZeroRemains@1000000030 : Record 50069;
+      Barcode@1000000031 : Record 50055;
+      SalesLine@1000000035 : Record 37;
+      PurchLine@1000000036 : Record 39;
+      ItemDocLine@1000000038 : Record 12453;
+      dlg@1000000040 : Dialog;
+    BEGIN
+      Item.SETFILTER(Item."No.",'IT00070|IT00175|IT01315.. IT01318|IT01481');
+
+      dlg.OPEN('Товар #1##################\'+
+               '#2########################');
+      IF Item.FINDSET THEN
+        REPEAT
+          dlg.UPDATE(1,Item."No.");
+         // IF NOT UnMgt.ItemVariantExists(Item."No.") THEN BEGIN
+
+           { // создали вариант -------------------
+            ItemVariant.INIT;
+            ItemVariant.Code:='';
+            ItemVariant."Item No.":=Item."No.";
+            ItemVariant.VALIDATE(Description,Item.Description);
+            ItemVariant."Description 2":=Item."Description 2";
+            ItemVariant."Web-Store ID":=Item."Web-Store ID";
+            ItemVariant.INSERT(TRUE);
+
+            // создали переводы -----------------
+            IF ItemTrans.GET(Item."No.",'','ENU') THEN BEGIN
+              ItemTrans2:=ItemTrans;
+              ItemTrans2."Variant Code":=ItemVariant.Code;
+              ItemTrans2.INSERT;
+            END;
+            }
+            ItemVariant.RESET;
+            ItemVariant.SETRANGE("Item No.",Item."No.");
+            ItemVariant.FINDFIRST;
+
+             dlg.UPDATE(2,'ILE');
+            // поменял ILE
+            ILE.SETRANGE("Item No.",Item."No.");
+            IF ILE.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                ILE."Variant Code":=ItemVariant.Code;
+                ILE.MODIFY;
+              UNTIL ILE.NEXT=0;
+
+             dlg.UPDATE(2,'VAL');
+
+            // поменял VAL
+            VAL.SETRANGE("Item No.",Item."No.");
+            IF VAL.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                VAL."Variant Code":=ItemVariant.Code;
+                VAL.MODIFY;
+              UNTIL VAL.NEXT=0;
+
+
+            // поменял ShipLine
+            ShipLine.SETRANGE(ShipLine."No.",Item."No.");
+            IF ShipLine.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                ShipLine."Variant Code":=ItemVariant.Code;
+                ShipLine.MODIFY;
+              UNTIL ShipLine.NEXT=0;
+
+            // поменял SaleInvLine
+            SaleInvLine.SETRANGE("No.",Item."No.");
+            IF SaleInvLine.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                SaleInvLine."Variant Code":=ItemVariant.Code;
+                SaleInvLine.MODIFY;
+              UNTIL SaleInvLine.NEXT=0;
+
+            // поменял CrMemoLine1
+            CrMemoLine1.SETRANGE("No.",Item."No.");
+            IF CrMemoLine1.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                CrMemoLine1."Variant Code":=ItemVariant.Code;
+                CrMemoLine1.MODIFY;
+              UNTIL CrMemoLine1.NEXT=0;
+
+
+            // поменял RcptLine
+            RcptLine.SETRANGE("No.",Item."No.");
+            IF RcptLine.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                RcptLine."Variant Code":=ItemVariant.Code;
+                RcptLine.MODIFY;
+              UNTIL RcptLine.NEXT=0;
+
+             dlg.UPDATE(2,'PurchInvLine');
+            // поменял PurchInvLine
+            PurchInvLine.SETRANGE("No.",Item."No.");
+            IF PurchInvLine.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                PurchInvLine."Variant Code":=ItemVariant.Code;
+                PurchInvLine.MODIFY;
+              UNTIL PurchInvLine.NEXT=0;
+
+            // поменял CrMemoLine2
+            CrMemoLine2.SETRANGE("No.",Item."No.");
+            IF CrMemoLine2.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                CrMemoLine2."Variant Code":=ItemVariant.Code;
+                CrMemoLine2.MODIFY;
+              UNTIL CrMemoLine2.NEXT=0;
+
+            // поменял IJLine
+            IJLine.SETRANGE("Item No.",Item."No.");
+            IF IJLine.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                IJLine."Variant Code":=ItemVariant.Code;
+                IJLine.MODIFY;
+              UNTIL IJLine.NEXT=0;
+
+            // поменял Inventory
+            Inventory.SETRANGE("Item No.",Item."No.");
+            IF Inventory.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                Inventory."Variant Code":=ItemVariant.Code;
+                Inventory.MODIFY;
+              UNTIL Inventory.NEXT=0;
+
+             dlg.UPDATE(2,'ReservEntry');
+
+            // поменял ReservEntry
+            ReservEntry.SETRANGE("Item No.",Item."No.");
+            IF ReservEntry.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                ReservEntry."Variant Code":=ItemVariant.Code;
+                ReservEntry.MODIFY;
+              UNTIL ReservEntry.NEXT=0;
+
+            // поменял CrossRef
+            CrossRef.SETRANGE("Item No.",Item."No.");
+            CrossRef.SETFILTER("Variant Code",'%1|%2','','V001509');
+            IF CrossRef.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                CrossRef2:=CrossRef;
+                CrossRef2."Variant Code":=ItemVariant.Code;
+                CrossRef2.INSERT;
+                CrossRef.DELETE;
+              UNTIL CrossRef.NEXT=0;
+
+            // поменял TransferLine
+            TransferLine.SETRANGE("Item No.",Item."No.");
+            IF TransferLine.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                TransferLine."Variant Code":=ItemVariant.Code;
+                TransferLine.MODIFY;
+              UNTIL TransferLine.NEXT=0;
+
+            // поменял TransShipLine
+            TransShipLine.SETRANGE("Item No.",Item."No.");
+            IF TransShipLine.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                TransShipLine."Variant Code":=ItemVariant.Code;
+                TransShipLine.MODIFY;
+              UNTIL TransShipLine.NEXT=0;
+
+             dlg.UPDATE(2,'TransReceiptLine');
+
+            // поменял TransReceiptLine
+            TransReceiptLine.SETRANGE("Item No.",Item."No.");
+            IF TransReceiptLine.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                TransReceiptLine."Variant Code":=ItemVariant.Code;
+                TransReceiptLine.MODIFY;
+              UNTIL TransReceiptLine.NEXT=0;
+
+            // поменял 5804
+            r5804.SETRANGE("Item No.",Item."No.");
+            r5804.SETFILTER("Variant Code",'%1|%2','','V001509');
+            IF r5804.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                r5804_2:=r5804;
+                r5804_2."Variant Code":=ItemVariant.Code;
+                r5804_2.INSERT;
+                r5804.DELETE;
+              UNTIL r5804.NEXT=0;
+
+            // поменял ReturnShipLine
+            ReturnShipLine.SETRANGE("No.",Item."No.");
+            IF ReturnShipLine.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                ReturnShipLine."Variant Code":=ItemVariant.Code;
+                ReturnShipLine.MODIFY;
+              UNTIL ReturnShipLine.NEXT=0;
+
+
+            // поменял ReturnReceiptLine
+            ReturnReceiptLine.SETRANGE("No.",Item."No.");
+            IF ReturnReceiptLine.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                ReturnReceiptLine."Variant Code":=ItemVariant.Code;
+                ReturnReceiptLine.MODIFY;
+              UNTIL ReturnReceiptLine.NEXT=0;
+
+            // поменял SalesPrice
+            SalesPrice.SETRANGE("Item No.",Item."No.");
+            SalesPrice.SETFILTER("Variant Code",'%1|%2','','V001509');
+            IF SalesPrice.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                SalesPrice2:=SalesPrice;
+                SalesPrice2."Variant Code":=ItemVariant.Code;
+                SalesPrice2.INSERT;
+                SalesPrice.DELETE;
+              UNTIL SalesPrice.NEXT=0;
+
+             dlg.UPDATE(2,'WareHouse');
+            // поменял r7319
+            r7319.SETRANGE("Item No.",Item."No.");
+            IF r7319.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                r7319."Variant Code":=ItemVariant.Code;
+                r7319.MODIFY;
+              UNTIL r7319.NEXT=0;
+
+            // поменял r7321
+            r7321.SETRANGE("Item No.",Item."No.");
+            IF r7321.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                r7321."Variant Code":=ItemVariant.Code;
+                r7321.MODIFY;
+              UNTIL r7321.NEXT=0;
+
+            // поменял r7317
+            r7317.SETRANGE("Item No.",Item."No.");
+            IF r7317.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                r7317."Variant Code":=ItemVariant.Code;
+                r7317.MODIFY;
+              UNTIL r7317.NEXT=0;
+
+
+            // поменял r7323
+            r7323.SETRANGE("Item No.",Item."No.");
+            IF r7323.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                r7323."Variant Code":=ItemVariant.Code;
+                r7323.MODIFY;
+              UNTIL r7323.NEXT=0;
+
+            // поменял r12455
+            r12455.SETRANGE("Item No.",Item."No.");
+            IF r12455.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                r12455."Variant Code":=ItemVariant.Code;
+                r12455.MODIFY;
+              UNTIL r12455.NEXT=0;
+
+             dlg.UPDATE(2,'CashLine');
+
+            // поменял CashLine
+            CashLine.SETRANGE("Item No.",Item."No.");
+            IF CashLine.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                CashLine."Variant Code":=ItemVariant.Code;
+                CashLine.MODIFY;
+              UNTIL CashLine.NEXT=0;
+
+
+            // поменял LAbelsline
+            LAbelsline.SETRANGE("Item No.",Item."No.");
+            IF LAbelsline.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                LAbelsline."Variant Code":=ItemVariant.Code;
+                LAbelsline.MODIFY;
+              UNTIL LAbelsline.NEXT=0;
+
+            // поменял PQRLINE
+            PQRLINE.SETRANGE("Item No.",Item."No.");
+            IF PQRLINE.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                PQRLINE."Variant Code":=ItemVariant.Code;
+                PQRLINE.MODIFY;
+              UNTIL PQRLINE.NEXT=0;
+
+            // поменял ZeroRemains
+            ZeroRemains.SETRANGE("Item No.",Item."No.");
+            IF ZeroRemains.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                ZeroRemains."Variant Code":=ItemVariant.Code;
+                ZeroRemains.MODIFY;
+              UNTIL ZeroRemains.NEXT=0;
+
+             dlg.UPDATE(2,'Barcode');
+            // поменял Barcode
+            Barcode.SETRANGE("Item No.",Item."No.");
+            IF Barcode.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                Barcode."Variant Code":=ItemVariant.Code;
+                Barcode.MODIFY;
+              UNTIL Barcode.NEXT=0;
+
+
+
+            // поменял SalesLine
+            SalesLine.SETRANGE("No.",Item."No.");
+            IF SalesLine.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                SalesLine."Variant Code":=ItemVariant.Code;
+                SalesLine.MODIFY;
+              UNTIL SalesLine.NEXT=0;
+
+            // поменял PurchLine
+            PurchLine.SETRANGE("No.",Item."No.");
+            IF PurchLine.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                PurchLine."Variant Code":=ItemVariant.Code;
+                PurchLine.MODIFY;
+              UNTIL PurchLine.NEXT=0;
+
+
+            // поменял ItemDocLine
+            ItemDocLine.SETRANGE("Item No.",Item."No.");
+            IF ItemDocLine.FINDSET(TRUE,TRUE) THEN
+              REPEAT
+                ItemDocLine."Variant Code":=ItemVariant.Code;
+                ItemDocLine.MODIFY;
+              UNTIL ItemDocLine.NEXT=0;
+
+          COMMIT;
+        // END;
+        UNTIL  Item.NEXT=0;
+        COMMIT;
+
+      dlg.CLOSE;
+      MESSAGE('успешно');
+    END;
+
+    PROCEDURE repairBarcode@1000000041();
+    VAR
+      Barcode@1000000000 : Record 50055;
+      ItemVariant@1000000001 : Record 5401;
+    BEGIN
+      Barcode.SETFILTER("Variant Code",'<>%1','');
+      IF Barcode.FINDSET(TRUE) THEN
+        REPEAT
+          ItemVariant.SETRANGE(ItemVariant."Item No.",Barcode."Item No.");
+          ItemVariant.SETRANGE(ItemVariant."Old Code",Barcode."Variant Code");
+          IF ItemVariant.FINDFIRST THEN BEGIN
+            Barcode."Variant Code":=ItemVariant.Code;
+            Barcode.MODIFY;
+          END;
+        UNTIL Barcode.NEXT=0;
+    END;
+
+    PROCEDURE CreateBonus@1000000042();
+    VAR
+      SalesPrice@1000000000 : Record 7002;
+      ItemVariant@1000000001 : Record 5401;
+      SalesPrice2@1000000002 : Record 7002;
+      Bonus@1000000003 : Decimal;
+      sch@1000000004 : Integer;
+    BEGIN
+      //ItemVariant.SETRANGE(ItemVariant."Item No.",'IT01986');
+
+      IF ItemVariant.FINDSET THEN
+        REPEAT
+          UnMgt.GetSalesPriceLine(ItemVariant."Item No.",ItemVariant.Code,'РОЗНИЧНЫЙ','',TODAY,SalesPrice) ;
+          Bonus:=UnMgt.CalcEmpBonus(ItemVariant."Item No.",ItemVariant.Code);
+          IF ((Bonus>0) AND (SalesPrice."Unit Price">0)) THEN BEGIN
+            SalesPrice2:=SalesPrice;
+            SalesPrice2."Sales Type":=SalesPrice2."Sales Type"::Campaign;
+            SalesPrice2."Sales Code":='БОНУСЫ';
+            SalesPrice2."Unit Price":=Bonus;
+            SalesPrice2."Minimum Quantity":=1;
+            SalesPrice2."Starting Date":=010111D;
+
+
+            IF SalesPrice2.INSERT(TRUE) THEN sch+=1;
+          END;
+
+
+        UNTIL ItemVariant.NEXT=0;
+
+      MESSAGE('Создано %1 записей',sch);
+    END;
+
+    PROCEDURE CheckDifBonus@1000000043();
+    VAR
+      ItemVariant@1000000000 : Record 5401;
+      OldBonus@1000000001 : Decimal;
+      NewBonus@1000000002 : Decimal;
+      Rowno@1000000003 : Integer;
+    BEGIN
+      Excel.CreateBook('Бонусы');
+      IF ItemVariant.FINDSET THEN
+        REPEAT
+          NewBonus:=UnMgt.GetEmpBonus(ItemVariant."Item No.",
+                                      ItemVariant.Code,
+                                       'БОНУСЫ',
+                                       '',
+                                       TODAY);
+
+         OldBonus:=UnMgt.GetOldBonus(ItemVariant."Item No.",
+                                     ItemVariant.Code);
+
+        IF NewBonus<>OldBonus THEN  BEGIN
+          Rowno+=1;
+          Excel.SetCell(1,Rowno,ItemVariant."Item No.");
+          Excel.SetCellRight(ItemVariant.Code);
+          Excel.SetCellIntRight(OldBonus);
+          Excel.SetCellIntRight(NewBonus);
+        END;
+
+
+        UNTIL ItemVariant.NEXT=0;
+    END;
+
+    PROCEDURE FillComplect@1000000044();
+    VAR
+      BOM@1000000000 : Record 90;
+    BEGIN
+      IF BOM.FINDSET(TRUE) THEN
+        REPEAT
+
+          IF (UnMgt.GetSingleVariant(BOM."No.")<>'') THEN BEGIN
+            BOM."Variant Code":=UnMgt.GetSingleVariant(BOM."No.");
+            BOM.MODIFY;
+          END;
+
+        UNTIL BOM.NEXT=0;
+    END;
+
+    PROCEDURE FillVendorItem@1000000045();
+    VAR
+      RcptLine@1000000000 : Record 121;
+      Item@1000000001 : Record 27;
+    BEGIN
+      IF RcptLine.FINDSET THEN
+        REPEAT
+          IF Item.GET(RcptLine."No.") THEN BEGIN
+
+            IF Item."Vendor No."<>'' THEN BEGIN
+              IF Item."Vendor No."<>RcptLine."Buy-from Vendor No." THEN  ;
+              {
+                ERROR('Товар %1 Поставщик %2 В строке %3 %4',
+                Item."No.",Item."Vendor No.",RcptLine."Document No."+'/'+FORMAT(RcptLine."Line No.")
+                ,RcptLine."Buy-from Vendor No.") ;
+              }
+            END ELSE BEGIN
+
+              Item."Vendor No.":=RcptLine."Buy-from Vendor No.";
+              Item.MODIFY;
+            END;
+
+          END;
+        UNTIL RcptLine.NEXT=0;
+    END;
+
+    PROCEDURE FillSearchDesc@1000000046();
+    VAR
+      Item@1000000000 : Record 27;
+    BEGIN
+      IF Item.FINDSET(TRUE,TRUE) THEN
+        REPEAT
+          Item.VALIDATE(Description,Item.Description);
+          Item.MODIFY;
+        UNTIL Item.NEXT=0;
+    END;
+
+    PROCEDURE CreateAvtorItem@1000000047();
+    VAR
+      ItemAuthor@1000000000 : Record 50033;
+      ItemVariant@1000000001 : Record 5401;
+      ItemAuthor2@1000000002 : Record 50033;
+    BEGIN
+      ItemAuthor.SETFILTER("Variant Code",'%1','');
+      IF ItemAuthor.FINDSET THEN
+        REPEAT
+          IF UnMgt.GetSingleVariant(ItemAuthor."Item No.")<>'' THEN BEGIN
+            ItemAuthor.RENAME(ItemAuthor."Author No.",ItemAuthor."Item No.",
+                              UnMgt.GetSingleVariant(ItemAuthor."Item No."));
+          END ELSE BEGIN
+            ItemVariant.SETRANGE("Item No.",ItemAuthor."Item No.");
+            IF ItemVariant.FINDSET THEN
+              REPEAT
+                ItemAuthor2:=ItemAuthor;
+                ItemAuthor2."Variant Code":=ItemVariant.Code;
+                ItemAuthor2.INSERT;
+              UNTIL ItemVariant.NEXT=0;
+
+          END;
+        UNTIL  ItemAuthor.NEXT=0;
+    END;
+
+    PROCEDURE FillFullDecVariant@1000000048();
+    VAR
+      ItemVariant@1000000000 : Record 5401;
+    BEGIN
+      IF ItemVariant.FINDSET THEN
+        REPEAT
+          ItemVariant."Full Description":=ItemVariant.Description+ItemVariant."Description 2";
+          ItemVariant.MODIFY;
+
+        UNTIL ItemVariant.NEXT=0;
+    END;
+
+    PROCEDURE FillAvtorItem@1000000053();
+    VAR
+      ItemAuthor@1000000003 : Record 50033;
+      LastRow@1000000000 : Integer;
+      CurRow@1000000001 : Integer;
+      ItemVariant@1000000002 : Record 5401;
+      Variant@1000000004 : Text[30];
+      Author@1000000005 : Text[30];
+    BEGIN
+      Excel.OpenFile('');
+
+      LastRow:=Excel.GetLastRow;
+
+      FOR CurRow:=1 TO LastRow DO BEGIN
+        Variant:=Excel.ReadField('D',CurRow) ;
+        Author:=Excel.ReadField('A',CurRow) ;
+        ItemVariant.SETRANGE(Code,Variant);
+        ItemVariant.FINDFIRST;
+        IF NOT ItemAuthor.GET(Author,ItemVariant."Item No.",Variant)  THEN BEGIN
+          CLEAR(ItemAuthor);
+          ItemAuthor.VALIDATE("Author No.",Author);
+          ItemAuthor.VALIDATE("Item No.",ItemVariant."Item No.");
+          ItemAuthor.VALIDATE("Variant Code",Variant);
+          ItemAuthor.INSERT(TRUE);
+        END;
+
+      END;
+    END;
+
+    PROCEDURE FillBarcode@1000000049();
+    VAR
+      Barcode@1000000000 : Record 50055;
+      Barcode2@1000000001 : Record 50055;
+    BEGIN
+      Barcode.SETFILTER("Variant Code",'%1','');
+      IF Barcode.FINDSET THEN
+        REPEAT
+          IF UnMgt.GetSingleVariant(Barcode."Item No.")<>'' THEN BEGIN
+            Barcode2:=Barcode;
+            Barcode2."Variant Code":=UnMgt.GetSingleVariant(Barcode."Item No.");
+            Barcode2.MODIFY;
+          END;
+
+        UNTIL Barcode.NEXT=0;
+    END;
+
+    PROCEDURE FillShipPrice2@1000000050();
+    VAR
+      TransHeader@1000000000 : Record 5744;
+      Customer@1000000001 : Record 18;
+      UnMgt@1000000002 : Codeunit 50112;
+      TransLine@1000000003 : Record 5745;
+    BEGIN
+
+      IF TransLine.FINDSET(TRUE,FALSE) THEN
+        REPEAT
+           TransHeader.GET(TransLine."Document No.") ;
+
+      IF    TransHeader."Agent No."='' THEN
+        IF STRPOS(TransHeader."Transfer-to Code",'PARTNER')=0 THEN BEGIN
+          IF TransLine."Item No."<>'' THEN BEGIN
+
+          TransLine."Sales Price":=UnMgt.GetSalesPrice(TransLine."Item No.",
+                                           TransLine."Variant Code",
+                                           'РОЗНИЧНЫЙ',
+                                           '',
+                                           TransHeader."Posting Date");
+          TransLine."Sales Amount":=TransLine.Quantity*TransLine."Sales Price";
+          TransLine.MODIFY;
+        END;
+        END;
+
+      UNTIL TransLine.NEXT=0;
+    END;
+
+    PROCEDURE Scaner@1000000051();
+    VAR
+      asx@1000000000 : Automation "{90FE287D-B7BC-4A3D-B058-629B1DD51A8F} 1.0:{1D562369-0A5C-414B-AA1C-E9EA9F4E5318}:'MetroSO 1.0 Type Library'.IMetroScanner";
+      ocx@1000000001 : Automation "{CCB90180-B81E-11D2-AB74-0040054C3719} 1.0:{CCB90182-B81E-11D2-AB74-0040054C3719}:'OPOS Scanner Control 1.8.001 [Public, by CRM/RCS-Dayton]'.OPOSScanner";
+    BEGIN
+      CREATE(ocx);
+
+      ocx.Open('test');
+      ocx.ClaimDevice(3000);
+      MESSAGE('%1',ocx.ScanData);
+      ocx.Close();
+    END;
+
+    PROCEDURE CreateExport@1000000052();
+    VAR
+      LastRow@1000000000 : Integer;
+      Row@1000000001 : Integer;
+      Location@1000000002 : Code[10];
+      ItemNo@1000000003 : Code[10];
+      MonthTxt@1000000004 : Text[30];
+      Month@1000000005 : Integer;
+      LastPurchPrice@1000000006 : Decimal;
+      LastRetailPrice@1000000007 : Decimal;
+      StartDate@1000000008 : Date;
+      EndDate@1000000009 : Date;
+      Item@1000000010 : Record 27;
+      PrognMgt@1000000011 : Codeunit 50130;
+      Store@1000000012 : Code[10];
+      ItemVariant@1000000013 : Record 5401;
+      Variant@1000000014 : Code[10];
+    BEGIN
+      Excel.OpenFile('');
+      LastRow:=Excel.GetLastRow;
+      FOR Row:=2 TO LastRow DO BEGIN
+        Store:=Excel.ReadField('A',Row);
+        Location:=UnMgt.LocationByStore(Store);
+        ItemNo:=Excel.ReadField('B',Row);
+        Variant:=Excel.ReadField('C',Row);
+        MonthTxt:=Excel.ReadField('D',Row);
+        EVALUATE(Month,MonthTxt);
+        StartDate:=DMY2DATE(1,Month,2011);
+        EndDate:=CALCDATE('<CM>', StartDate);
+
+
+        IF Item.GET(ItemNo) THEN BEGIN
+        {
+          Variant:=UnMgt.GetSingleVariant(ItemNo);
+          IF Variant='' THEN BEGIN
+            ItemVariant.SETRANGE("Item No.",ItemNo);
+            ItemVariant.FINDFIRST;
+            Variant:=ItemVariant.Code;
+          END;
+        }
+          Excel.SetCellInt(6,Row,PrognMgt.GetRemainPeriod(Location,ItemNo,Variant,StartDate,EndDate));
+          LastPurchPrice:=UnMgt.GetLastPurchPrice(ItemNo,Variant,'','..'+FORMAT(TODAY));
+          IF LastPurchPrice=0 THEN
+            LastPurchPrice:=Item."Unit Cost";
+          LastRetailPrice:=UnMgt.GetSalesPrice(ItemNo,Variant,'РОЗНИЧНЫЙ','',TODAY);
+          IF  LastRetailPrice=0 THEN
+            LastRetailPrice:=Item."Retail Price";
+
+          Excel.SetCellIntRight(LastPurchPrice);
+          Excel.SetCellIntRight(LastRetailPrice);
+          Item.SETRANGE("Location Filter",Location);
+          Item.SETRANGE("Variant Filter",Variant);
+          Item.CALCFIELDS(Inventory);
+          Excel.SetCellIntRight(Item.Inventory);
+          Excel.SetCellRight(UnMgt.FullItemDescRU(ItemNo,Variant));
+
+        END;
+      END;
+    END;
+
+    PROCEDURE ImportPictures@1000000054();
+    VAR
+      ItemVariant@1000000000 : Record 5401;
+      LastRow@1000000001 : Integer;
+      Row@1000000002 : Integer;
+      Variant@1000000003 : Code[10];
+      Filename@1000000004 : Text[100];
+      Path@1000000005 : Text[50];
+      Starttime@1000000006 : Time;
+    BEGIN
+      Excel.OpenFile('');
+      LastRow:=Excel.GetLastRow;
+      Starttime:=TIME;
+      FOR Row:=2 TO LastRow DO BEGIN
+        Variant:=Excel.ReadField('A',Row);
+        Filename:=Excel.ReadField('B',Row);
+        Path:='c:\Work\Прайслист\Foto bmp\';
+      //'\\saturn\exchange\kd\NavImg\'+
+        ItemVariant.SETRANGE(Code,Variant);
+        IF ItemVariant.FINDFIRST THEN
+          IF ItemVariant.Picture.IMPORT(Path+Filename,FALSE)<> '' THEN
+            ItemVariant.MODIFY;
+
+      END;
+      COMMIT;
+      MESSAGE(TechMgt.TimeString(TIME-Starttime));
+    END;
+
+    PROCEDURE FillVendorReceiptType@1000000055();
+    VAR
+      Vendor@1000000000 : Record 23;
+      ILE@1000000001 : Record 32;
+      Item@1000000002 : Record 27;
+    BEGIN
+      ILE.SETRANGE("Entry Type",ILE."Entry Type"::Purchase) ;
+      IF ILE.FINDSET THEN
+        REPEAT
+         IF Vendor.GET(ILE."Source No.") THEN BEGIN
+           Item.GET(ILE."Item No.");
+            IF Item."Production Type" THEN
+              Vendor."Receive Type":=Vendor."Receive Type"::Production
+            ELSE
+              Vendor."Receive Type":=Vendor."Receive Type"::Purchase;
+            Vendor.MODIFY;
+         END;
+
+        UNTIL ILE.NEXT=0;
+
+
+      EXIT;
+
+
+      IF Item.FINDSET(TRUE,FALSE) THEN
+        REPEAT
+          IF Vendor.GET(Item."Vendor No.") THEN BEGIN
+            IF Item."Production Type" THEN
+              Vendor."Receive Type":=Vendor."Receive Type"::Production
+            ELSE
+              Vendor."Receive Type":=Vendor."Receive Type"::Purchase;
+            Vendor.MODIFY;
+          END;
+        UNTIL Item.NEXT=0;
+    END;
+
+    PROCEDURE SetStatusLine@1000000056();
+    VAR
+      Header@1000000000 : Record 50024;
+      Header2@1000000002 : Record 50024;
+      Line@1000000001 : Record 50025;
+    BEGIN
+      IF Header.FINDSET(FALSE,FALSE) THEN
+        REPEAT
+          IF Header.Status=Header.Status::Normal THEN BEGIN
+            Header2:=Header;
+            Header2.Status:=Header.Status::Posted;
+            Header2.MODIFY;
+            Line.SETRANGE("Cash Check No.",Header."No.");
+            Line.MODIFYALL(Status,Line.Status::Posted);
+          END;
+        UNTIL Header.NEXT=0;
+    END;
+
+    PROCEDURE ChangeInventoryPAge@1000000057();
+    VAR
+      InvPageLine@1000000000 : Record 50186;
+      InvPageLine2@1000000001 : Record 50186;
+    BEGIN
+      InvPageLine.SETRANGE("Inventory Page No.",'PAGE-00029','PAGE-00047');
+      InvPageLine.SETRANGE("Inventory No.",'INV-00020');
+      IF InvPageLine.FINDSET THEN
+        REPEAT
+          InvPageLine2:=InvPageLine;
+          InvPageLine2."Inventory No.":='INV-00026';
+          InvPageLine2.INSERT(TRUE);
+          InvPageLine.DELETE(TRUE);
+
+        UNTIL InvPageLine.NEXT=0;
+    END;
+
+    PROCEDURE AddReturn2Zreport@1000000058();
+    VAR
+      ReturnHeader@1000000001 : Record 50024;
+      ReturnLine@1000000000 : Record 50025;
+      ZLines@1000000002 : Record 50029;
+      ZLines2@1000000003 : Record 50029;
+      sch@1000000004 : Integer;
+    BEGIN
+      ReturnHeader.SETRANGE("Document Type",ReturnLine."Document Type"::"Return Order");
+      ReturnHeader.SETRANGE(Printed,TRUE);
+      ReturnHeader.SETRANGE(Fiscaled,FALSE);
+      ReturnHeader.SETFILTER(Status,'<>%1',ReturnHeader.Status::Cancel);
+      ReturnHeader.SETFILTER("Pay Type",'%1|%2',ReturnHeader."Pay Type"::Cash, ReturnHeader."Pay Type"::Signal);
+      ReturnHeader.SETRANGE("Print Date",010111D,310112D);
+      IF ReturnHeader.FINDSET THEN
+        REPEAT
+
+          ZLines.SETRANGE("Cash Check No.",ReturnHeader."No.");
+          IF ZLines.ISEMPTY THEN BEGIN
+            CLEAR(ZLines2);
+            ZLines2."No.":=GetReturnZ(ReturnHeader);
+            ZLines2."Line No.":=900+sch;
+            ZLines2."Cash Check No.":=ReturnHeader."No.";
+            ZLines2."Document Type":=ReturnHeader."Document Type";
+            ZLines2."Sales Document No.":=ReturnHeader."Sales Document No.";
+            ZLines2."Pay Type":= ReturnHeader."Pay Type";
+            ReturnHeader.CALCFIELDS("Cash Sale Amount");
+            ZLines2."Check Amount":=ABS(ReturnHeader."Cash Sale Amount");
+            ZLines2."Print Date":=ReturnHeader."Print Date";
+            ZLines2.INSERT(TRUE);
+            sch+=1;
+          END;
+        UNTIL ReturnHeader.NEXT=0;
+    END;
+
+    PROCEDURE GetReturnZ@1000000059(VAR varRec@1000000000 : Record 50024) : Integer;
+    VAR
+      ReturnHeader@1000000001 : Record 50024;
+    BEGIN
+      ReturnHeader.COPYFILTERS(varRec);
+      ReturnHeader.SETRANGE("Document Type",ReturnHeader."Document Type"::Order);
+      ReturnHeader.SETRANGE("Print Date",varRec."Print Date");
+      ReturnHeader.SETRANGE(Fiscaled,TRUE);
+      IF ReturnHeader.FINDSET THEN
+        REPEAT
+          IF ReturnHeader."Z Report No."<>0 THEN
+              EXIT(ReturnHeader."Z Report No.")
+        UNTIL ReturnHeader.NEXT=0
+
+      ELSE
+        ERROR('Не найду смену для \\%1',varRec);
+    END;
+
+    PROCEDURE ChangeCurrency@1000000060();
+    VAR
+      SalesPrice@1000000000 : Record 7002;
+      Customer@1000000001 : Record 18;
+      SalesPrice2@1000000002 : Record 7002;
+    BEGIN
+      SalesPrice.SETRANGE("Currency Code",'UAH-У');
+      IF SalesPrice.FINDSET THEN
+        REPEAT
+          SalesPrice2:=SalesPrice;
+          SalesPrice2."Currency Code":='UAH';
+          SalesPrice2.INSERT;
+          SalesPrice.DELETE;
+        UNTIL SalesPrice.NEXT=0;
+
+      COMMIT;
+      SalesPrice.SETRANGE("Currency Code",'USD-У');
+      IF SalesPrice.FINDSET THEN
+        REPEAT
+          SalesPrice2:=SalesPrice;
+          SalesPrice2."Currency Code":='USD';
+          SalesPrice2.INSERT;
+          SalesPrice.DELETE;
+        UNTIL SalesPrice.NEXT=0;
+
+      COMMIT;
+
+      Customer.SETRANGE("Currency Code",'USD-У');
+      Customer.MODIFYALL("Currency Code",'USD');
+      COMMIT;
+      Customer.SETRANGE("Currency Code",'UAH-У');
+      Customer.MODIFYALL("Currency Code",'UAH');
+      COMMIT;
+    END;
+
+    PROCEDURE ImportBonus@1000000061();
+    VAR
+      LastRow@1000000000 : Integer;
+      RowNo@1000000001 : Integer;
+      Bonus@1000000002 : Integer;
+      ItemNo@1000000003 : Code[10];
+      Salesprice@1000000004 : Record 7002;
+      ItemVariant@1000000005 : Record 5401;
+    BEGIN
+      Excel.OpenFile('');
+      LastRow:=Excel.GetLastRow;
+      FOR RowNo:=2 TO LastRow DO BEGIN
+        ItemNo:=Excel.ReadField('A',RowNo);
+          ItemVariant.SETRANGE("Item No.",ItemNo);
+          IF ItemVariant.FINDSET THEN
+            REPEAT
+              IF NOT EVALUATE(Bonus,Excel.ReadField('C',RowNo)) THEN
+                ERROR('Не могу понять бонус для %1',ItemNo);
+
+              CLEAR(Salesprice);
+              Salesprice."Sales Type":=Salesprice."Sales Type"::Campaign;
+              Salesprice."Sales Code":='БОНУСЫ';
+              Salesprice."Starting Date":=011211D;
+              Salesprice."Unit Price":=Bonus;
+              Salesprice."Item No.":=ItemVariant."Item No.";
+              Salesprice."Variant Code":=ItemVariant.Code;
+              Salesprice."PQR No.":='MANUAL';
+              IF NOT Salesprice.INSERT(TRUE) THEN
+                Salesprice.MODIFY(TRUE);
+            UNTIL ItemVariant.NEXT=0;
+
+      END;
+    END;
+
+    PROCEDURE ShowAutorItem@1000000062();
+    VAR
+      Item@1000000000 : Record 27;
+      ItemVariant@1000000001 : Record 5401;
+      ItemAuthor@1000000002 : Record 50033;
+    BEGIN
+      Item.SETRANGE("Production Type",TRUE);
+      IF Item.FINDSET THEN
+        REPEAT
+          ItemVariant.SETRANGE("Item No.",Item."No.");
+          IF ItemVariant.FINDSET THEN
+            REPEAT
+              IF NOT ItemAuthor.GET(ItemVariant."Item No.",ItemVariant.Code) THEN BEGIN
+                 CLEAR(ItemAuthor);
+                 ItemAuthor."Item No.":=ItemVariant."Item No.";
+                 ItemAuthor."Variant Code":=ItemVariant.Code;
+                 ItemAuthor."Bonus %":=5;
+                 ItemAuthor.INSERT(TRUE);
+              END;
+            UNTIL ItemVariant.NEXT=0;
+        UNTIL Item.NEXT=0;
+    END;
+
+    PROCEDURE NotificateTemplate@1000000064();
+    VAR
+      NotificJournal@1000000000 : Record 50053;
+      NotificMgt@1000000001 : Codeunit 50114;
+      fmItemCard@1000000002 : Form 30;
+      Item@1000000003 : Record 27;
+    BEGIN
+      NotificJournal."Notification Template ID":='NAV-007';
+      NotificJournal."Language Code":='RUS';
+
+      NotificJournal."Parameter 1":='Название проекта';//подставляемый в шаблон параметр %1;
+      NotificJournal."Parameter 2":=UnMgt.ManagerByUserID(USERID);
+      NotificJournal."Parameter 4":='Код проекта';
+      Item.GET('IT00067');
+      fmItemCard.SETTABLEVIEW(Item);
+      NotificJournal."Parameter 3":=  fmItemCard.URL(FALSE);
+
+
+
+
+      NotificMgt.AddWaitinglist(NotificJournal);  // поставили в очередь
+
+
+      {
+
+      NotificJournal."Parameter 3":=
+
+      'navision://client/run?servername+AD0-venus+ACU-26database+AD0-artlebedev+ACU-26company+AD0EIQRCBEMENAQ4BE8'+
+      'AJQ-20+BBsENQQxBDUENAQ1BDIEMAAl-26target+AD0-Form+ACU-2050002+ACU-26view+AD0-SORTING(Field1,Field50001)+ACU-20'+
+      'WHERE(Field67+AD0-1(2-+BBwEHgQhBBoEEgQQ-))+ACU-26position+AD0-Field1+AD0-0(IT00076),Field50001+AD0-0()+ACU-26s'+
+      'ervertype+AD0-MSSQL';
+
+
+
+
+      NotificMgt.AddWaitinglist(NotificJournal);  // поставили в очередь
+       }
+    END;
+
+    PROCEDURE ImportCurrencyImage@1000000063();
+    VAR
+      Currency@1000000000 : Record 4;
+    BEGIN
+      Currency.GET('UAH');
+      Currency.Image.IMPORT('*.bmp',TRUE);
+      Currency.MODIFY;
+    END;
+
+    PROCEDURE FillBeginRem@1000000065();
+    VAR
+      ILE@1000000000 : Record 32;
+      ILE2@1000000001 : Record 32;
+      Agree@1000000002 : Code[20];
+      IAE@1000000003 : Record 339;
+      Total@1000000004 : Integer;
+      sch@1000000005 : Integer;
+      Vend@1000000006 : Code[20];
+    BEGIN
+      ILE.SETRANGE("Document No.",'НАЧ_ОСТ');
+      //ILE.SETFILTER("Source No.",'<>%1','');
+      Total:=ILE.COUNT;
+      sch:=0;
+      IF ILE.FINDSET THEN
+        REPEAT
+          sch+=1;
+          Update('По нач. остаткам '+ILE."Item No."+'/'+ILE."Location Code",sch,Total);
+
+          Vend:=GetVendor2(ILE);
+          IF Vend<>'' THEN BEGIN
+
+            ILE2:=ILE;
+            ILE2."Source No.":=Vend;
+            ILE2.MODIFY;
+
+            Agree:=GetAgree2(ILE2);
+            IAE.SETRANGE("Item Ledger Entry No.",ILE2."Entry No.");
+            IF IAE.FINDFIRST THEN BEGIN
+              IAE."Agreement No.":= Agree;
+              IAE.MODIFY;
+              COMMIT;
+              FindNextEntry(IAE);
+            END;
+          END;
+        UNTIL ILE.NEXT=0;
+    END;
+
+    PROCEDURE FillIAEAgree@1000000068();
+    VAR
+      IAE@1000000000 : Record 339;
+      ILE@1000000001 : Record 32;
+      Agree@1000000002 : Code[20];
+      Total@1000000004 : Integer;
+      sch@1000000003 : Integer;
+    BEGIN
+
+
+      ILE.SETRANGE("Entry Type",ILE."Entry Type"::Purchase);
+
+      ILE.SETRANGE("Item No.",'IT02121');
+
+      ILE.SETFILTER("Source No.",'<>%1','');
+
+      Total:=ILE.COUNT;
+      sch:=0;
+
+      IF ILE.FINDSET THEN
+        REPEAT
+          Update('По покупкам '+ILE."Item No."+'/'+ILE."Location Code",sch,Total);
+
+          Agree:=GetAgreeByDoc(ILE."Document No.");
+          IAE.SETRANGE("Item Ledger Entry No.",ILE."Entry No.");
+         IF IAE.COUNT=1 THEN BEGIN
+
+          IF IAE.FINDFIRST THEN BEGIN
+            IAE."Agreement No.":= Agree;
+            IAE.MODIFY;
+          END;
+          FindNextEntry(IAE);
+         END;
+        UNTIL ILE.NEXT=0;
+    END;
+
+    PROCEDURE GetAgreeByDoc@1000000067(pDocNo@1000000000 : Code[20]) : Code[20];
+    VAR
+      ReturnHeader@1000000001 : Record 6650;
+      PurchaseHeader@1000000002 : Record 120;
+    BEGIN
+      IF PurchaseHeader.GET(pDocNo) THEN
+        EXIT(PurchaseHeader."Agreement No.");
+
+      IF  ReturnHeader.GET(pDocNo) THEN
+        EXIT(ReturnHeader."Agreement No.");
+
+      ERROR('Не найден документ %1',pDocNo);
+    END;
+
+    PROCEDURE FindNextEntry@1000000066(pRec@1000000000 : Record 339);
+    VAR
+      IAE@1000000001 : Record 339;
+    BEGIN
+      IAE.RESET;
+      IAE.SETRANGE("Inbound Item Entry No.",pRec."Item Ledger Entry No.");
+      IAE.SETFILTER("Item Ledger Entry No.",'<>%1',pRec."Item Ledger Entry No.");
+      IF IAE.FINDSET THEN
+        REPEAT
+          IF   IAE."Agreement No."<>pRec."Agreement No." THEN BEGIN
+            IAE."Agreement No.":=pRec."Agreement No.";
+            IAE.MODIFY;
+            COMMIT;
+          END;
+          FindNextEntry(IAE);
+        UNTIL IAE.NEXT=0;
+
+      IAE.RESET;
+      IAE.SETRANGE("Outbound Item Entry No.",pRec."Item Ledger Entry No.");
+      IAE.SETRANGE(IAE."Transferred-from Entry No.",pRec."Inbound Item Entry No.");
+      IF IAE.FINDSET THEN
+        REPEAT
+          IF   IAE."Agreement No."<>pRec."Agreement No." THEN BEGIN
+
+            IAE."Agreement No.":=pRec."Agreement No.";
+            IAE.MODIFY;
+            COMMIT;
+          END;
+          FindNextEntry(IAE);
+        UNTIL IAE.NEXT=0;
+    END;
+
+    PROCEDURE Update@1000000069(pDesc@1000000000 : Text[50];pCounter@1000000001 : Integer;pTotal@1000000002 : Integer);
+    BEGIN
+
+      dlg.UPDATE(1,pDesc);
+
+      dlg.UPDATE(2,ROUND(pCounter/pTotal*10000,1));
+    END;
+
+    PROCEDURE GetVendor2@1000000070(ILE@1000000000 : Record 32) : Code[20];
+    VAR
+      Item@1000000001 : Record 27;
+      ILE2@1000000002 : Record 32;
+    BEGIN
+      Item.GET(ILE."Item No.");
+      IF Item."Vendor No."<>'' THEN
+        EXIT(Item."Vendor No.");
+
+      ILE2.SETCURRENTKEY("Item No.","Posting Date");
+      ILE2.SETRANGE("Item No.",ILE."Item No.");
+      ILE2.SETRANGE("Variant Code",ILE."Variant Code");
+      ILE2.SETRANGE("Entry Type",ILE."Entry Type"::Purchase);
+      IF ILE2.FINDFIRST THEN
+        EXIT(ILE2."Source No.");
+    END;
+
+    PROCEDURE GetAgree2@1000000071(ILE@1000000000 : Record 32) : Code[20];
+    VAR
+      VendorAgree@1000000001 : Record 14901;
+    BEGIN
+      VendorAgree.SETRANGE("Vendor No.",ILE."Source No.");
+      IF VendorAgree.COUNT=1 THEN BEGIN
+        VendorAgree.FINDFIRST;
+        EXIT(VendorAgree."No.");
+      END;
+
+      VendorAgree.SETCURRENTKEY("Starting Date");
+      IF VendorAgree.FINDSET THEN
+        REPEAT
+          IF ILE."Posting Date" IN [VendorAgree."Starting Date"..VendorAgree."Expire Date"] THEN
+            EXIT(VendorAgree."No.");
+        UNTIL VendorAgree.NEXT=0;
+    END;
+
+    PROCEDURE Fill1c@1000000072();
+    VAR
+      PurchIvNeader@1000000000 : Record 122;
+      PurchIvNeader2@1000000001 : Record 122;
+    BEGIN
+      PurchIvNeader.SETRANGE("1С Sync DateTime",0DT);
+      IF PurchIvNeader.FINDSET THEN
+        REPEAT
+          PurchIvNeader2:=PurchIvNeader;
+          PurchIvNeader2."1С Sync DateTime":=CREATEDATETIME(PurchIvNeader."Posting Date",0T);
+          PurchIvNeader2.MODIFY;
+        UNTIL PurchIvNeader.NEXT=0;
+    END;
+
+    PROCEDURE GreatePayment@1000000073();
+    VAR
+      SalInvHeader@1000000000 : Record 112;
+      GenJnlLine@1000000001 : Record 81;
+      sch@1000000002 : Integer;
+      GenJnlManagement@1000000003 : Codeunit 230;
+      b@1000000004 : Decimal;
+      bb@1000000005 : Boolean;
+      CustLEntry@1000000006 : Record 21;
+    BEGIN
+      SalInvHeader.SETRANGE("Responsibility Center",'М-ШОП');
+      SalInvHeader.SETFILTER("Posting Date",'<>%1', 150312D);
+
+
+      IF SalInvHeader.FINDSET THEN
+        REPEAT
+          sch+=100;
+          CLEAR(GenJnlLine);
+          GenJnlLine."Journal Batch Name":='СТАНДАРТ';
+          GenJnlLine."Journal Template Name":='ПРИХОДНАЛ';
+          GenJnlLine."Line No.":=sch;
+          GenJnlLine."Source Code":='КЛИЕНТЖУР';
+          GenJnlLine.VALIDATE("Document Type",GenJnlLine."Document Type"::Payment);
+          GenJnlLine.VALIDATE("Account Type",GenJnlLine."Account Type"::"Bank Account");
+          GenJnlLine.VALIDATE("Account No.",SalInvHeader."Bal. Account No.");
+          GenJnlLine.VALIDATE("Posting Date",SalInvHeader."Posting Date");
+          GenJnlLine.VALIDATE("Document No.",SalInvHeader."No.");
+          GenJnlLine.VALIDATE("Bal. Account Type",GenJnlLine."Bal. Account Type"::Customer);
+          GenJnlLine.VALIDATE("Bal. Account No.",SalInvHeader."Sell-to Customer No.");
+          GenJnlLine.VALIDATE(GenJnlLine."Agreement No.",'AGR0000126');
+          GenJnlLine."Responsibility Center":='М-ШОП';
+          GenJnlLine."Order Type":=GenJnlLine."Order Type"::Store;
+          GenJnlLine."Legal Person Code":=SalInvHeader."Legal Person Code";
+          GenJnlLine.INSERT(TRUE);
+          GenJnlLine.VALIDATE("Applies-to Doc. Type",GenJnlLine."Applies-to Doc. Type"::Invoice);
+          GenJnlLine.VALIDATE("Applies-to Doc. No.",SalInvHeader."No.");
+
+          GenJnlLine.MODIFY(TRUE);
+          CustLEntry.SETRANGE("Customer No.",SalInvHeader."Sell-to Customer No.");
+          CustLEntry.SETRANGE(Open,TRUE);
+          CustLEntry.SETRANGE("Document No.",SalInvHeader."No.");
+          CustLEntry.SETRANGE("Document Type",CustLEntry."Document Type"::Invoice);
+
+          IF CustLEntry.FINDSET THEN   BEGIN
+          IF CustLEntry."Amount to Apply" = 0 THEN
+            CustLEntry."Amount to Apply" := CustLEntry."Remaining Amount";
+
+            CODEUNIT.RUN(CODEUNIT::"Cust. Entry-Edit",CustLEntry);
+          END;
+
+        UNTIL SalInvHeader.NEXT=0;
+    END;
+
+    PROCEDURE ImportZipCode@1000000074();
+    VAR
+      ZipCode@1000000000 : Code[30];
+      LastRow@1000000001 : Integer;
+      Row@1000000002 : Integer;
+      PostCode@1000000003 : Record 225;
+      TxtTax@1000000004 : Text[30];
+    BEGIN
+      Excel.OpenFile('');
+      LastRow:=Excel.GetLastRow;
+      FOR Row:=2 TO LastRow DO BEGIN
+        PostCode.Code:=Excel.ReadField('K',Row);
+        PostCode.City:=Excel.ReadField('B',Row);
+        PostCode."Country Code":='USA';
+        TxtTax:=Excel.ReadField('J',Row);
+        IF NOT EVALUATE(PostCode."Sales Tax, %",TxtTax) THEN
+          ERROR('%1 %2',Row,TxtTax);
+        IF PostCode.INSERT(TRUE) THEN ;
+      END;
+
+      MESSAGE('%1',ZipCode);
+    END;
+
+    PROCEDURE ConvertBankLE@1000000075();
+    VAR
+      BankLE@1000000000 : Record 271;
+      UAHAmmount@1000000001 : Decimal;
+      BankLE2@1000000002 : Record 271;
+      RecordRef@1000000003 : RecordRef;
+      CurrencyRate@1000000004 : Record 330;
+    BEGIN
+      BankLE.SETRANGE("Bank Account No.",'1-КИЕВ-НАЛ');
+      IF BankLE.FINDSET THEN
+        REPEAT
+          UAHAmmount:= CurrencyRate.ExchangeAmtFCYToFCY(BankLE."Posting Date",
+                                           '',
+                                           'UAH',
+                                           BankLE."Amount (LCY)");
+           BankLE2:= BankLE;
+           BankLE2.Amount:=UAHAmmount;
+           BankLE2."Remaining Amount":=UAHAmmount;
+          UAHAmmount:= CurrencyRate.ExchangeAmtFCYToFCY(BankLE."Posting Date",
+                                           '',
+                                           'UAH',
+                                           BankLE."Debit Amount (LCY)");
+          BankLE2."Debit Amount":=UAHAmmount;
+          UAHAmmount:= CurrencyRate.ExchangeAmtFCYToFCY(BankLE."Posting Date",
+                                           '',
+                                           'UAH',
+                                           BankLE."Credit Amount (LCY)");
+          BankLE2."Credit Amount":=UAHAmmount;
+          BankLE2.MODIFY;
+         {RecordRef.GETTABLE(BankLE2);
+         TechMgt.MessageRec(RecordRef);}
+        UNTIL BankLE.NEXT=0;
+    END;
+
+    PROCEDURE ImportBIK@1000000076();
+    VAR
+      ZipCode@1000000000 : Code[30];
+      LastRow@1000000001 : Integer;
+      Row@1000000002 : Integer;
+      PostCode@1000000003 : Record 225;
+      TxtTax@1000000004 : Text[30];
+      BIK@1000000005 : Text[30];
+      NewName@1000000006 : Text[100];
+      BankDirectory@1000000007 : Record 12409;
+    BEGIN
+
+      Excel.OpenFile('');
+      LastRow:=Excel.GetLastRow;
+      FOR Row:=2 TO LastRow DO BEGIN
+        BIK:=Excel.ReadField('H',Row);
+        IF BankDirectory.GET(BIK) THEN BEGIN
+          NewName:=Excel.ReadField('F',Row);
+         // IF BankDirectory."Full Name"<>NewName THEN BEGIN
+            BankDirectory."Full Name":=NewName;
+            BankDirectory."Short Name":=Excel.ReadField('G',Row);
+            BankDirectory.MODIFY;
+        //  END;
+
+        END ELSE BEGIN
+          CLEAR(BankDirectory);
+          BankDirectory.BIC:=BIK;
+          BankDirectory."Full Name":=Excel.ReadField('F',Row);
+          IF EVALUATE(BankDirectory."Last Modify Date",Excel.ReadField('Q',Row)) THEN ;
+          BankDirectory.INSERT(TRUE);
+        END;
+
+
+      END;
+
+      MESSAGE('%1',ZipCode);
+    END;
+
+    PROCEDURE test@1000000077();
+    VAR
+      ShellObj@1000000001 : Automation "{50A7E9B0-70EF-11D1-B75A-00A0C90564FE} 1.0:{13709620-C279-11CE-A49E-444553540000}:'Microsoft Shell Controls And Automation'.Shell";
+      FolderObj@1000000000 : Automation "{50A7E9B0-70EF-11D1-B75A-00A0C90564FE} 1.0:{BBCBDE60-C3FF-11CE-8350-444553540000}:'Microsoft Shell Controls And Automation'.Folder";
+    BEGIN
+      CLEAR(ShellObj);
+
+      CREATE(ShellObj,FALSE);
+
+      //ShellObj.MinimizeAll;
+      //ShellObj.TrayProperties;
+      //ShellObj.FindFiles
+      ShellObj.ShutdownWindows
+    END;
+
+    PROCEDURE CorrectPAck@1000000078();
+    VAR
+      PackLine@1000000000 : Record 50076;
+      PackLine2@1000000001 : Record 50076;
+    BEGIN
+      IF PackLine.FINDSET THEN
+        REPEAT
+          PackLine.CALCFIELDS(PackLine."Item Weight");
+          PackLine2:=PackLine;
+          PackLine2."Total weight":=PackLine."Box Weight";
+          PackLine2."Box Weight":=PackLine2."Total weight"-PackLine."Item Weight";
+          PackLine2.MODIFY;
+        UNTIL PackLine.NEXT=0;
+    END;
+
+    PROCEDURE ImportIndex@1000000079();
+    VAR
+      PostCode@1000000000 : Record 225;
+      LastRow@1000000001 : Integer;
+      Row@1000000002 : Integer;
+      IndexCode@1000000003 : Code[10];
+      ShortCity@1000000004 : Text[30];
+      OPS@1000000005 : Text[100];
+    BEGIN
+      Excel.OpenFile('');
+
+      LastRow:=Excel.GetLastRow;
+      FOR Row:=2 TO LastRow DO BEGIN
+
+        IndexCode:=Excel.ReadField('A',Row);
+        PostCode.SETRANGE(PostCode.Code,IndexCode);
+        IF  NOT PostCode.FINDFIRST THEN BEGIN;
+          PostCode.INIT;
+          PostCode.Code:=IndexCode;
+          ShortCity:=COPYSTR(Excel.ReadField('H',Row),1,30);
+          OPS:=Excel.ReadField('B',Row);
+          IF ShortCity<>'' THEN
+            PostCode.City:=ShortCity
+          ELSE
+            PostCode.City:=COPYSTR(OPS,1,30);
+          PostCode."Full OPS Name":=OPS;
+          PostCode."Country Code":='RU';
+          PostCode.INSERT;
+        END;
+      END;
+    END;
+
+    PROCEDURE ImportItemValues@1000000080();
+    VAR
+      LastRow@1000000001 : Integer;
+      Row@1000000000 : Integer;
+      VariantCode@1000000003 : Code[10];
+    BEGIN
+      Excel.OpenFile('');
+
+      LastRow:=Excel.GetLastRow;
+      FOR Row:=4 TO LastRow DO BEGIN
+        VariantCode:=Excel.ReadField('D',Row);
+        IF VariantCode<>'' THEN BEGIN
+          CreateDimension(VariantCode,'LENGTH',Excel.ReadField('F',Row));
+          CreateDimension(VariantCode,'WIDTH',Excel.ReadField('G',Row));
+          CreateDimension(VariantCode,'HEIGHT',Excel.ReadField('H',Row));
+          CreateDimension(VariantCode,'FACTWEIGHT',Excel.ReadField('I',Row));
+          CreateDimension(VariantCode,'SITEWEIGHT',Excel.ReadField('J',Row));
+
+        END;
+
+
+      END;
+    END;
+
+    PROCEDURE CreateDimension@1000000082(pVariant@1000000002 : Code[10];pDimCode@1000000000 : Code[10];pValue@1000000001 : Text[30]);
+    VAR
+      ItemDimension@1000000003 : Record 50058;
+      ItemVariant@1000000004 : Record 5401;
+      ItemDimSetup@1000000005 : Record 50059;
+    BEGIN
+        IF pValue='' THEN
+          EXIT;
+
+      ItemVariant.SETRANGE(Code,pVariant);
+      IF ItemVariant.FINDSET THEN BEGIN
+        CLEAR(ItemDimension);
+        ItemDimension."Item No.":=ItemVariant."Item No.";
+        ItemDimension."Variant Code":=ItemVariant.Code;
+        ItemDimension."Dimension Code":=pDimCode;
+        ItemDimSetup.GET(1,pDimCode);
+        ItemDimension."Value Type":=ItemDimSetup."Value Type";
+        ItemDimension."Dimension Type":=ItemDimSetup.Type;
+        ItemDimension.VALIDATE("Dimension Value",pValue);
+        IF NOT ItemDimension.INSERT(TRUE) THEN
+          ItemDimension.MODIFY(TRUE);
+      END;
+    END;
+
+    PROCEDURE GetEmptyVariants@1000000081();
+    VAR
+      ItemVariant@1000000000 : Record 5401;
+      ILE@1000000001 : Record 32;
+    BEGIN
+      IF ItemVariant.FINDSET THEN
+        REPEAT
+          ILE.SETRANGE("Variant Code",ItemVariant.Code);
+          IF ILE.ISEMPTY THEN
+            TechMgt.WriteWinLog('c:\work\emptyVar.txt',ItemVariant."Item No."+';'+
+                                ItemVariant.Code+';'+ItemVariant.Description+ItemVariant."Description 2")
+        UNTIL ItemVariant.NEXT=0;
+    END;
+
+    PROCEDURE UpdateTrLine@1000000083();
+    VAR
+      TransLine@1000000000 : Record 5741;
+    BEGIN
+      TransLine.SETRANGE("Document No.",'TR11-03183');
+      IF TransLine.FINDSET THEN
+        REPEAT
+          TransLine."Sales Amount":=TransLine."Sales Price"*TransLine.Quantity;
+          TransLine.MODIFY;
+        UNTIL TransLine.NEXT=0;
+    END;
+
+    PROCEDURE FillIAECommPrice@1000000084();
+    VAR
+      TransShipLine@1000000000 : Record 5745;
+      ILE@1000000001 : Record 32;
+      IAE@1000000002 : Record 339;
+      TransReceiptLine@1000000003 : Record 5747;
+    BEGIN
+      TransShipLine.SETRANGE("Sales Price",0,99999999);
+      IF  TransShipLine.FINDSET THEN
+        REPEAT
+          ILE.SETRANGE("Document No.",TransShipLine."Document No.");
+          ILE.SETRANGE("Item No.",TransShipLine."Item No.");
+          ILE.SETRANGE("Variant Code",TransShipLine."Variant Code");
+          IF ILE.FINDSET THEN REPEAT
+            IAE.SETRANGE("Item Ledger Entry No.",ILE."Entry No.");
+            IF IAE.FINDSET  THEN REPEAT
+              IAE."Сommission Price":=TransShipLine."Sales Price";
+              IAE.MODIFY;
+            UNTIL IAE.NEXT=0;
+          UNTIL ILE.NEXT=0;
+          TransReceiptLine.SETRANGE("Transfer Order No.",TransShipLine."Transfer Order No.");
+          TransReceiptLine.SETRANGE("Item No.",TransShipLine."Item No.");
+          TransReceiptLine.SETRANGE("Variant Code",TransShipLine."Variant Code");
+          IF  TransReceiptLine.FINDSET THEN
+            REPEAT
+             ILE.SETRANGE("Document No.",TransReceiptLine."Document No.");
+             ILE.SETRANGE("Item No.",TransReceiptLine."Item No.");
+             ILE.SETRANGE("Variant Code",TransReceiptLine."Variant Code");
+             IF ILE.FINDSET THEN REPEAT
+               IAE.SETRANGE("Item Ledger Entry No.",ILE."Entry No.");
+               IF IAE.FINDSET  THEN REPEAT
+                 IAE."Сommission Price":=TransShipLine."Sales Price";
+                 IAE.MODIFY;
+                UNTIL IAE.NEXT=0;
+              UNTIL ILE.NEXT=0;
+            UNTIL  TransReceiptLine.NEXT=0;
+        UNTIL TransShipLine.NEXT=0;
+    END;
+
+    PROCEDURE FillItemReceiveType@1000000085();
+    VAR
+      item@1000000000 : Record 27;
+    BEGIN
+      IF item.FINDSET(TRUE,FALSE) THEN
+        REPEAT
+          IF item."Production Type" THEN BEGIN
+            item."Receive Type":=item."Receive Type"::Production;
+            item.MODIFY;
+          END;
+        UNTIL item.NEXT=0
+    END;
+
+    PROCEDURE FillLegalPersonAGree@1000000086();
+    VAR
+      CustAgree@1000000000 : Record 14902;
+      Customer@1000000001 : Record 18;
+    BEGIN
+
+      IF CustAgree.FINDSET(TRUE,FALSE) THEN
+        REPEAT
+          IF Customer.GET(CustAgree."Customer No.") THEN
+            IF Customer."Responsibility Center"='О-ОПТ' THEN BEGIN    //О-ОПТ
+              CustAgree."Legal Person Code":='ПЗК';
+              CustAgree.MODIFY;
+            END;
+        UNTIL CustAgree.NEXT=0;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+

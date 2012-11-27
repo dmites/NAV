@@ -1,0 +1,1231 @@
+OBJECT Form 50015 Item List DL 2
+{
+  OBJECT-PROPERTIES
+  {
+    Date=05.09.12;
+    Time=18:26:50;
+    Modified=Yes;
+    Version List=AS;
+  }
+  PROPERTIES
+  {
+    Width=21450;
+    Height=7920;
+    Editable=Yes;
+    CaptionML=[ENU=Item List;
+               RUS=Список Товаров с Вариантами];
+    SaveValues=Yes;
+    InsertAllowed=No;
+    DeleteAllowed=No;
+    ModifyAllowed=Yes;
+    SourceTable=Table27;
+    SourceTableTemporary=Yes;
+    OnInit=VAR
+             lrec_UserSetup@1000000001 : Record 91;
+             lrec_Customer@1000000000 : Record 18;
+           BEGIN
+             InitForm;
+           END;
+
+    OnAfterGetRecord=BEGIN
+                       IF ItemTranslation.GET("No.","Temp Code",'RUS') THEN
+                         PrintInPrice := ItemTranslation."Print in Price";
+                       IF ItemTranslation.GET("No.","Temp Code",'ENU') THEN
+                         PrintInPriceEn := ItemTranslation."Print in Price";
+                       CALCFIELDS(Inventory,"Reserved Qty. on Inventory");
+                     END;
+
+    OnAfterGetCurrRecord=BEGIN
+                           UpdateControls;
+                         END;
+
+  }
+  CONTROLS
+  {
+    { 1000000000;TableBox;220 ;330  ;21010;6600 ;HorzGlue=Both;
+                                                 VertGlue=Both;
+                                                 HeadingHeight=880 }
+    { 1000000003;PictureBox;0 ;4730 ;556  ;3740 ;ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 BitmapList=47,46;
+                                                 CaptionML=[ENU=Expand;
+                                                            RUS=Раскрыть];
+                                                 SourceExpr="Temp Int";
+                                                 OnPush=BEGIN
+                                                          UpdateVariantLines;
+                                                        END;
+                                                         }
+    { 1000000004;Label  ;0    ;0    ;0    ;0    ;ParentControl=1000000003;
+                                                 InColumnHeading=Yes }
+    { 1000000005;TextBox;2699 ;5940 ;1700 ;440  ;Editable=No;
+                                                 ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 SourceExpr="No.";
+                                                 OnFormat=BEGIN
+                                                            IF "Item Category Code"='' THEN
+                                                              CurrForm."No.".UPDATEFORECOLOR(12632256);
+
+                                                            IF ("Temp Int" = 0) OR ("Temp Int" = 1) THEN
+                                                              CurrForm."No.".UPDATEFONTBOLD(TRUE)
+                                                            ELSE
+                                                              CurrForm."No.".UPDATEFONTBOLD(FALSE);
+                                                          END;
+                                                           }
+    { 1000000006;Label  ;0    ;0    ;0    ;0    ;ParentControl=1000000005;
+                                                 InColumnHeading=Yes }
+    { 1000000011;CheckBox;2249;4180 ;1100 ;440  ;ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 ShowCaption=No;
+                                                 SourceExpr="Production Type" }
+    { 1000000012;Label  ;0    ;0    ;0    ;0    ;ParentControl=1000000011;
+                                                 InColumnHeading=Yes }
+    { 1000000021;TextBox;12780;3960 ;2314 ;440  ;Editable=No;
+                                                 ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 SourceExpr="Item Category Code";
+                                                 OnFormat=BEGIN
+                                                            IF (Rec."Temp Int"<>2) THEN
+                                                              CurrForm."Item Category Code".UPDATEFORECOLOR(16777215)
+                                                            ELSE
+                                                              CurrForm."Item Category Code".UPDATEFORECOLOR(0);
+
+                                                            IF ("Temp Int" = 0) OR ("Temp Int" = 1) THEN
+                                                              CurrForm."Item Category Code".UPDATEFONTBOLD(TRUE)
+                                                            ELSE
+                                                              CurrForm."Item Category Code".UPDATEFONTBOLD(FALSE);
+                                                          END;
+                                                           }
+    { 1000000022;Label  ;0    ;0    ;0    ;0    ;ParentControl=1000000021;
+                                                 InColumnHeading=Yes }
+    { 1000000023;TextBox;14480;3960 ;2090 ;440  ;Editable=No;
+                                                 ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 SourceExpr="Product Group Code";
+                                                 OnFormat=BEGIN
+                                                            IF (Rec."Temp Int"<>2) THEN
+                                                              CurrForm."Product Group Code".UPDATEFORECOLOR(16777215)
+                                                            ELSE
+                                                              CurrForm."Product Group Code".UPDATEFORECOLOR(0);
+
+                                                            IF ("Temp Int" = 0) OR ("Temp Int" = 1) THEN
+                                                              CurrForm."Product Group Code".UPDATEFONTBOLD(TRUE)
+                                                            ELSE
+                                                              CurrForm."Product Group Code".UPDATEFONTBOLD(FALSE);
+                                                          END;
+                                                           }
+    { 1000000024;Label  ;0    ;0    ;0    ;0    ;ParentControl=1000000023;
+                                                 InColumnHeading=Yes }
+    { 1000000007;TextBox;4075 ;4180 ;2310 ;440  ;Editable=No;
+                                                 ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 CaptionML=[ENU=Item Variant;
+                                                            RUS=Код Варианта];
+                                                 SourceExpr="Temp Code";
+                                                 OnFormat=BEGIN
+                                                            IF ("Temp Int" = 0) OR ("Temp Int" = 1) THEN
+                                                              CurrForm."Temp Code".UPDATEFONTBOLD(TRUE)
+                                                            ELSE
+                                                              CurrForm."Temp Code".UPDATEFONTBOLD(FALSE);
+                                                          END;
+                                                           }
+    { 1000000008;Label  ;0    ;0    ;0    ;0    ;ParentControl=1000000007;
+                                                 InColumnHeading=Yes }
+    { 1101489007;TextBox;6853 ;1870 ;8125 ;440  ;Editable=No;
+                                                 ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 SourceExpr="Description 3";
+                                                 OnFormat=BEGIN
+                                                            IF ("Temp Int" = 0) OR ("Temp Int" = 1) THEN
+                                                              CurrForm."Description 3".UPDATEFONTBOLD(TRUE)
+                                                            ELSE
+                                                              CurrForm."Description 3".UPDATEFONTBOLD(FALSE);
+                                                          END;
+                                                           }
+    { 1101489008;Label  ;0    ;0    ;0    ;0    ;ParentControl=1101489007;
+                                                 InColumnHeading=Yes }
+    { 1101981000;TextBox;18309;2860 ;1700 ;440  ;ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 SourceExpr=GetVolume }
+    { 1101981001;Label  ;0    ;0    ;0    ;0    ;ParentControl=1101981000;
+                                                 InColumnHeading=Yes;
+                                                 CaptionML=RUS=Размеры, см }
+    { 1101981002;TextBox;20347;3740 ;1700 ;440  ;ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 SourceExpr=GetWeight }
+    { 1101981003;Label  ;0    ;0    ;0    ;0    ;ParentControl=1101981002;
+                                                 InColumnHeading=Yes;
+                                                 CaptionML=RUS=Вес факт/сайт, гр }
+    { 1000000001;TextBox;16298;3080 ;4400 ;440  ;Editable=No;
+                                                 ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 SourceExpr="USA Description" }
+    { 1000000002;Label  ;0    ;0    ;0    ;0    ;ParentControl=1000000001;
+                                                 InColumnHeading=Yes }
+    { 1101489000;TextBox;15002;2640 ;4400 ;440  ;Visible=No;
+                                                 Editable=No;
+                                                 ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 SourceExpr="Feature Color" }
+    { 1101489001;Label  ;0    ;0    ;0    ;0    ;ParentControl=1101489000;
+                                                 InColumnHeading=Yes }
+    { 1101489002;TextBox;19402;2640 ;4400 ;440  ;Visible=No;
+                                                 Editable=No;
+                                                 ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 SourceExpr="Feature SIze" }
+    { 1101489003;Label  ;0    ;0    ;0    ;0    ;ParentControl=1101489002;
+                                                 InColumnHeading=Yes }
+    { 1101489004;TextBox;23802;2640 ;4400 ;440  ;Visible=No;
+                                                 Editable=No;
+                                                 ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 SourceExpr="Feature Flavour" }
+    { 1101489005;Label  ;0    ;0    ;0    ;0    ;ParentControl=1101489004;
+                                                 InColumnHeading=Yes }
+    { 1101489011;TextBox;28707;2420 ;4400 ;440  ;Visible=No;
+                                                 Editable=No;
+                                                 ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 SourceExpr="Feature ISBN" }
+    { 1101489012;Label  ;0    ;0    ;0    ;0    ;ParentControl=1101489011;
+                                                 InColumnHeading=Yes }
+    { 1000000074;CheckBox;12355;4180;1943 ;440  ;Visible=No;
+                                                 ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 ShowCaption=No;
+                                                 SourceExpr=PrintInPrice;
+                                                 OnValidate=BEGIN
+                                                              IF ItemTranslation.GET("No.","Temp Code",'RUS') THEN BEGIN
+                                                                ItemTranslation."Print in Price" := PrintInPrice;
+                                                                ItemTranslation.MODIFY;
+                                                              END;
+                                                            END;
+                                                             }
+    { 1000000078;Label  ;0    ;0    ;0    ;0    ;ParentControl=1000000074;
+                                                 InColumnHeading=Yes;
+                                                 CaptionML=[ENU=Print in Price;
+                                                            RUS=Печатать в Прайсе] }
+    { 1000000128;CheckBox;15159;3520;1653 ;440  ;Visible=No;
+                                                 ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 ShowCaption=No;
+                                                 SourceExpr=PrintInPriceEn;
+                                                 OnValidate=BEGIN
+                                                              IF ItemTranslation.GET("No.","Temp Code",'ENU') THEN BEGIN
+                                                                ItemTranslation."Print in Price" := PrintInPriceEn;
+                                                                ItemTranslation.MODIFY;
+                                                              END;
+                                                            END;
+                                                             }
+    { 1000000129;Label  ;0    ;0    ;0    ;0    ;ParentControl=1000000128;
+                                                 InColumnHeading=Yes;
+                                                 CaptionML=[ENU=Print in Price (En.);
+                                                            RUS=Печатать в Прайсе (En.)] }
+    { 1000000015;TextBox;16025;8360 ;2200 ;440  ;Visible=No;
+                                                 Editable=No;
+                                                 ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 SourceExpr="Gross Weight" }
+    { 1000000016;Label  ;0    ;0    ;0    ;0    ;ParentControl=1000000015;
+                                                 InColumnHeading=Yes }
+    { 1000000009;TextBox;45350;3850 ;4400 ;440  ;ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 SourceExpr="1C ID" }
+    { 1000000010;Label  ;0    ;0    ;0    ;0    ;ParentControl=1000000009;
+                                                 InColumnHeading=Yes }
+    { 1000000017;TextBox;18225;8360 ;2200 ;440  ;Visible=No;
+                                                 Editable=No;
+                                                 ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 SourceExpr="Net Weight" }
+    { 1000000018;Label  ;0    ;0    ;0    ;0    ;ParentControl=1000000017;
+                                                 InColumnHeading=Yes }
+    { 1000000013;TextBox;51515;3850 ;1700 ;440  ;ParentControl=1000000000;
+                                                 InColumn=Yes;
+                                                 SourceExpr=BarcodeMgt.GetBarcode("No.","Temp Code",FALSE) }
+    { 1000000014;Label  ;0    ;0    ;0    ;0    ;ParentControl=1000000013;
+                                                 InColumnHeading=Yes;
+                                                 CaptionML=RUS=Штрихкод }
+    { 1000000025;CommandButton;6930;7150;2200;550;
+                                                 HorzGlue=Right;
+                                                 VertGlue=Bottom;
+                                                 Default=Yes;
+                                                 PushAction=LookupOK;
+                                                 InvalidActionAppearance=Hide }
+    { 1000000026;CommandButton;9350;7150;2200;550;
+                                                 HorzGlue=Right;
+                                                 VertGlue=Bottom;
+                                                 Cancel=Yes;
+                                                 PushAction=LookupCancel;
+                                                 InvalidActionAppearance=Hide }
+    { 1000000027;MenuButton;11770;7150;2200;550 ;Name=ButIt1;
+                                                 HorzGlue=Right;
+                                                 VertGlue=Bottom;
+                                                 CaptionML=[ENU=&Item;
+                                                            RUS=&Товар];
+                                                 Menu=MENUITEMS
+                                                 {
+                                                   { ID=1000000031;
+                                                     PushAction=RunObject;
+                                                     ShortCutKey=Shift+F5;
+                                                     CaptionML=[ENU=Card;
+                                                                RUS=Карточка];
+                                                     RunObject=Form 50002;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=No.=FIELD(No.),
+                                                                 Date Filter=FIELD(Date Filter),
+                                                                 Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                                                                 Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                                                                 Location Filter=FIELD(Location Filter),
+                                                                 Drop Shipment Filter=FIELD(Drop Shipment Filter) }
+                                                   { ID=1000000052;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Translations and Setups;
+                                                                RUS=Переводы и Настройки];
+                                                     RunObject=Form 35;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=Item No.=FIELD(No.),
+                                                                 Variant Code=CONST() }
+                                                   { ID=1000000051;
+                                                     MenuItemType=Separator }
+                                                   { ID=1000000032;
+                                                     CaptionML=[ENU=E&ntries;
+                                                                RUS=О&перации] }
+                                                   { ID=1000000033;
+                                                     PushAction=RunObject;
+                                                     ShortCutKey=Ctrl+F5;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=Ledger E&ntries;
+                                                                RUS=Учтенные О&перации];
+                                                     RunObject=Form 38;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Item No.);
+                                                     RunFormLink=Item No.=FIELD(No.) }
+                                                   { ID=1000000034;
+                                                     PushAction=RunObject;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=&Reservation Entries;
+                                                                RUS=Операции &Резервирования];
+                                                     RunObject=Form 497;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Item No.,Variant Code,Location Code,Reservation Status);
+                                                     RunFormLink=Reservation Status=CONST(Reservation),
+                                                                 Item No.=FIELD(No.) }
+                                                   { ID=1000000035;
+                                                     PushAction=RunObject;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=&Phys. Inventory Ledger Entries;
+                                                                RUS=Операции Ин&вентаризации];
+                                                     RunObject=Form 390;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Item No.);
+                                                     RunFormLink=Item No.=FIELD(No.) }
+                                                   { ID=1000000036;
+                                                     PushAction=RunObject;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=&Value Entries;
+                                                                RUS=Операции &Стоимости];
+                                                     RunObject=Form 5802;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Item No.);
+                                                     RunFormLink=Item No.=FIELD(No.) }
+                                                   { ID=1000000037;
+                                                     CaptionML=[ENU=Statistics;
+                                                                RUS=Статистика] }
+                                                   { ID=1000000038;
+                                                     ShortCutKey=F9;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=Statistics;
+                                                                RUS=Статистика];
+                                                     OnPush=VAR
+                                                              ItemStatistics@1001 : Form 5827;
+                                                            BEGIN
+                                                              ItemStatistics.SetItem(Rec);
+                                                              ItemStatistics.RUNMODAL;
+                                                            END;
+                                                             }
+                                                   { ID=1000000039;
+                                                     PushAction=RunObject;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=Entry Statistics;
+                                                                RUS=Статистика Операций];
+                                                     RunObject=Form 304;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=No.=FIELD(No.),
+                                                                 Date Filter=FIELD(Date Filter),
+                                                                 Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                                                                 Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                                                                 Location Filter=FIELD(Location Filter),
+                                                                 Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                                                                 Variant Filter=FIELD(Variant Filter) }
+                                                   { ID=1000000040;
+                                                     PushAction=RunObject;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=T&urnover;
+                                                                RUS=О&борот];
+                                                     RunObject=Form 158;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=No.=FIELD(No.),
+                                                                 Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                                                                 Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                                                                 Location Filter=FIELD(Location Filter),
+                                                                 Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                                                                 Variant Filter=FIELD(Variant Filter) }
+                                                   { ID=1000000041;
+                                                     CaptionML=[ENU=Items b&y Location;
+                                                                RUS=Товары п&о Складам];
+                                                     OnPush=VAR
+                                                              ItemsByLocation@1001 : Form 491;
+                                                            BEGIN
+                                                              ItemsByLocation.SETRECORD(Rec);
+                                                              ItemsByLocation.RUN;
+                                                            END;
+                                                             }
+                                                   { ID=1000000042;
+                                                     CaptionML=[ENU=&Item Availability by;
+                                                                RUS=Наличие &Товара по] }
+                                                   { ID=1000000043;
+                                                     PushAction=RunObject;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=Period;
+                                                                RUS=Периодам];
+                                                     RunObject=Form 157;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=No.=FIELD(No.),
+                                                                 Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                                                                 Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                                                                 Location Filter=FIELD(Location Filter),
+                                                                 Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                                                                 Variant Filter=FIELD(Variant Filter) }
+                                                   { ID=1000000044;
+                                                     PushAction=RunObject;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=Variant;
+                                                                RUS=Вариантам];
+                                                     RunObject=Form 5414;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=No.=FIELD(No.),
+                                                                 Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                                                                 Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                                                                 Location Filter=FIELD(Location Filter),
+                                                                 Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                                                                 Variant Filter=FIELD(Variant Filter) }
+                                                   { ID=1000000045;
+                                                     PushAction=RunObject;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=Location;
+                                                                RUS=Складам];
+                                                     RunObject=Form 492;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=No.=FIELD(No.),
+                                                                 Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                                                                 Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                                                                 Location Filter=FIELD(Location Filter),
+                                                                 Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                                                                 Variant Filter=FIELD(Variant Filter) }
+                                                   { ID=1000000046;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=&Picture;
+                                                                RUS=&Картинка];
+                                                     RunObject=Form 346;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=No.=FIELD(No.),
+                                                                 Date Filter=FIELD(Date Filter),
+                                                                 Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                                                                 Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                                                                 Location Filter=FIELD(Location Filter),
+                                                                 Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                                                                 Variant Filter=FIELD(Variant Filter) }
+                                                   { ID=1000000047;
+                                                     MenuItemType=Separator }
+                                                   { ID=1000000048;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=&Units of Measure;
+                                                                RUS=&Единицы Измерения];
+                                                     RunObject=Form 5404;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=Item No.=FIELD(No.) }
+                                                   { ID=1000000049;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Va&riants;
+                                                                RUS=Ва&рианты];
+                                                     RunObject=Form 5401;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=Item No.=FIELD(No.) }
+                                                   { ID=1000000050;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Cross Re&ferences;
+                                                                RUS=Перекрестные Ссы&лки];
+                                                     RunObject=Form 5721;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=Item No.=FIELD(No.) }
+                                                   { ID=1000000053;
+                                                     MenuItemType=Separator }
+                                                   { ID=1000000054;
+                                                     CaptionML=[ENU=Assembly &List;
+                                                                RUS=Сборочный &Лист] }
+                                                   { ID=1000000055;
+                                                     PushAction=RunObject;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=Bill of Materials;
+                                                                RUS=Комплект];
+                                                     RunObject=Form 36;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=Parent Item No.=FIELD(No.) }
+                                                   { ID=1000000056;
+                                                     PushAction=RunObject;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=Where-Used List;
+                                                                RUS=Где-Используется Список];
+                                                     RunObject=Form 37;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Type,No.);
+                                                     RunFormLink=Type=CONST(Item),
+                                                                 No.=FIELD(No.) }
+                                                   { ID=1000000057;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=Calc. Stan&dard Cost;
+                                                                RUS=Расчет С&танд. Себестоимости];
+                                                     OnPush=BEGIN
+                                                              CalculateStdCost.CalcItem("No.",TRUE);
+                                                            END;
+                                                             }
+                                                   { ID=1000000058;
+                                                     MenuItemType=Separator;
+                                                     CaptionML=[ENU="";
+                                                                RUS=""] }
+                                                   { ID=1000000059;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Identifiers;
+                                                                RUS=Идентификаторы];
+                                                     RunObject=Form 7706;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Item No.,Variant Code,Unit of Measure Code);
+                                                     RunFormLink=Item No.=FIELD(No.) }
+                                                   { ID=1000000060;
+                                                     Visible=No }
+                                                 }
+                                                  }
+    { 1000000028;MenuButton;14190;7150;2200;550 ;Name=ButIt2;
+                                                 HorzGlue=Right;
+                                                 VertGlue=Bottom;
+                                                 CaptionML=[ENU=S&ales;
+                                                            RUS=Про&дажи];
+                                                 Menu=MENUITEMS
+                                                 {
+                                                   { ID=1000000061;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Prices;
+                                                                RUS=Цены];
+                                                     RunObject=Form 7002;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Item No.);
+                                                     RunFormLink=Item No.=FIELD(No.) }
+                                                   { ID=1000000062;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Line Discounts;
+                                                                RUS=Скидки Строки];
+                                                     RunObject=Form 7004;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Type,Code);
+                                                     RunFormLink=Type=CONST(Item),
+                                                                 Code=FIELD(No.) }
+                                                   { ID=1000000063;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Orders;
+                                                                RUS=Заказы];
+                                                     RunObject=Form 48;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Document Type,Type,No.);
+                                                     RunFormLink=Type=CONST(Item),
+                                                                 No.=FIELD(No.) }
+                                                   { ID=1000000064;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Returns Orders;
+                                                                RUS=Возвраты];
+                                                     RunObject=Form 6633;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Document Type,Type,No.);
+                                                     RunFormLink=Type=CONST(Item),
+                                                                 No.=FIELD(No.) }
+                                                   { ID=1000000065;
+                                                     MenuItemType=Separator }
+                                                   { ID=1000000066;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Shipping Agent;
+                                                                RUS=Агенты по Доставке];
+                                                     RunObject=Form 50009;
+                                                     RunFormLink=Item No.=FIELD(No.) }
+                                                   { ID=1000000121;
+                                                     MenuItemType=Separator }
+                                                   { ID=1000000122;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Print Price-list;
+                                                                RUS=Печать Прайса];
+                                                     RunObject=Report 50001 }
+                                                 }
+                                                  }
+    { 1000000029;MenuButton;16610;7150;2200;550 ;Name=ButIt3;
+                                                 HorzGlue=Right;
+                                                 VertGlue=Bottom;
+                                                 CaptionML=[ENU=&Purchases;
+                                                            RUS=&Покупки];
+                                                 Menu=MENUITEMS
+                                                 {
+                                                   { ID=1000000067;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Ven&dors;
+                                                                RUS=Пос&тавщики];
+                                                     RunObject=Form 114;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Item No.);
+                                                     RunFormLink=Item No.=FIELD(No.) }
+                                                   { ID=1000000068;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Prices;
+                                                                RUS=Цены];
+                                                     RunObject=Form 7012;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Item No.);
+                                                     RunFormLink=Item No.=FIELD(No.) }
+                                                   { ID=1000000069;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Line Discounts;
+                                                                RUS=Скидки Строки];
+                                                     RunObject=Form 7014;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Item No.);
+                                                     RunFormLink=Item No.=FIELD(No.) }
+                                                   { ID=1000000070;
+                                                     MenuItemType=Separator }
+                                                   { ID=1000000071;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Orders;
+                                                                RUS=Заказы];
+                                                     RunObject=Form 56;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Document Type,Type,No.);
+                                                     RunFormLink=Type=CONST(Item),
+                                                                 No.=FIELD(No.) }
+                                                   { ID=1000000072;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Return Orders;
+                                                                RUS=Возвраты];
+                                                     RunObject=Form 6643;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Document Type,Type,No.);
+                                                     RunFormLink=Type=CONST(Item),
+                                                                 No.=FIELD(No.) }
+                                                 }
+                                                  }
+    { 1000000030;CommandButton;19030;7150;2200;550;
+                                                 HorzGlue=Right;
+                                                 VertGlue=Bottom;
+                                                 PushAction=FormHelp }
+    { 1000000075;MenuButton;11770;7150;2200;550 ;Name=ButVar1;
+                                                 HorzGlue=Right;
+                                                 VertGlue=Bottom;
+                                                 CaptionML=[ENU=&Item;
+                                                            RUS=&Товар];
+                                                 Menu=MENUITEMS
+                                                 {
+                                                   { ID=1000000079;
+                                                     PushAction=RunObject;
+                                                     ShortCutKey=Shift+F5;
+                                                     CaptionML=[ENU=Card;
+                                                                RUS=Карточка];
+                                                     RunObject=Form 50002;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=No.=FIELD(No.),
+                                                                 Date Filter=FIELD(Date Filter),
+                                                                 Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                                                                 Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                                                                 Location Filter=FIELD(Location Filter),
+                                                                 Drop Shipment Filter=FIELD(Drop Shipment Filter) }
+                                                   { ID=1000000100;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Translations and Setups;
+                                                                RUS=Переводы и Настройки];
+                                                     RunObject=Form 35;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=Item No.=FIELD(No.),
+                                                                 Variant Code=FIELD(Temp Code) }
+                                                   { ID=1000000123;
+                                                     MenuItemType=Separator }
+                                                   { ID=1000000080;
+                                                     CaptionML=[ENU=E&ntries;
+                                                                RUS=О&перации] }
+                                                   { ID=1000000081;
+                                                     PushAction=RunObject;
+                                                     ShortCutKey=Ctrl+F5;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=Ledger E&ntries;
+                                                                RUS=Учтенные О&перации];
+                                                     RunObject=Form 38;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Item No.);
+                                                     RunFormLink=Item No.=FIELD(No.),
+                                                                 Variant Code=FIELD(Temp Code) }
+                                                   { ID=1000000082;
+                                                     PushAction=RunObject;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=&Reservation Entries;
+                                                                RUS=Операции &Резервирования];
+                                                     RunObject=Form 497;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Item No.,Variant Code,Location Code,Reservation Status);
+                                                     RunFormLink=Reservation Status=CONST(Reservation),
+                                                                 Item No.=FIELD(No.),
+                                                                 Variant Code=FIELD(Temp Code) }
+                                                   { ID=1000000083;
+                                                     PushAction=RunObject;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=&Phys. Inventory Ledger Entries;
+                                                                RUS=Операции Ин&вентаризации];
+                                                     RunObject=Form 390;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Item No.);
+                                                     RunFormLink=Item No.=FIELD(No.),
+                                                                 Variant Code=FIELD(Temp Code) }
+                                                   { ID=1000000084;
+                                                     PushAction=RunObject;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=&Value Entries;
+                                                                RUS=Операции &Стоимости];
+                                                     RunObject=Form 5802;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Item No.);
+                                                     RunFormLink=Item No.=FIELD(No.),
+                                                                 Variant Code=FIELD(Temp Code) }
+                                                   { ID=1000000085;
+                                                     CaptionML=[ENU=Statistics;
+                                                                RUS=Статистика] }
+                                                   { ID=1000000086;
+                                                     ShortCutKey=F9;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=Statistics;
+                                                                RUS=Статистика];
+                                                     OnPush=VAR
+                                                              ItemStatistics@1001 : Form 5827;
+                                                            BEGIN
+                                                              ItemStatistics.SetItem(Rec);
+                                                              ItemStatistics.RUNMODAL;
+                                                            END;
+                                                             }
+                                                   { ID=1000000087;
+                                                     PushAction=RunObject;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=Entry Statistics;
+                                                                RUS=Статистика Операций];
+                                                     RunObject=Form 304;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=No.=FIELD(No.),
+                                                                 Date Filter=FIELD(Date Filter),
+                                                                 Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                                                                 Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                                                                 Location Filter=FIELD(Location Filter),
+                                                                 Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                                                                 Variant Filter=FIELD(Variant Filter) }
+                                                   { ID=1000000088;
+                                                     PushAction=RunObject;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=T&urnover;
+                                                                RUS=О&борот];
+                                                     RunObject=Form 158;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=No.=FIELD(No.),
+                                                                 Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                                                                 Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                                                                 Location Filter=FIELD(Location Filter),
+                                                                 Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                                                                 Variant Filter=FIELD(Variant Filter) }
+                                                   { ID=1000000089;
+                                                     CaptionML=[ENU=Items b&y Location;
+                                                                RUS=Товары п&о Складам];
+                                                     OnPush=VAR
+                                                              ItemsByLocation@1001 : Form 491;
+                                                            BEGIN
+                                                              ItemsByLocation.SETRECORD(Rec);
+                                                              ItemsByLocation.RUN;
+                                                            END;
+                                                             }
+                                                   { ID=1000000090;
+                                                     CaptionML=[ENU=&Item Availability by;
+                                                                RUS=Наличие &Товара по] }
+                                                   { ID=1000000091;
+                                                     PushAction=RunObject;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=Period;
+                                                                RUS=Периодам];
+                                                     RunObject=Form 157;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=No.=FIELD(No.),
+                                                                 Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                                                                 Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                                                                 Location Filter=FIELD(Location Filter),
+                                                                 Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                                                                 Variant Filter=FIELD(Variant Filter) }
+                                                   { ID=1000000093;
+                                                     PushAction=RunObject;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=Location;
+                                                                RUS=Складам];
+                                                     RunObject=Form 492;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=No.=FIELD(No.),
+                                                                 Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                                                                 Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                                                                 Location Filter=FIELD(Location Filter),
+                                                                 Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                                                                 Variant Filter=FIELD(Variant Filter) }
+                                                   { ID=1000000073;
+                                                     PushAction=RunObject;
+                                                     CaptionML=RUS=&Картинка;
+                                                     RunObject=Form 346;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=No.=FIELD(No.),
+                                                                 Date Filter=FIELD(Date Filter),
+                                                                 Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                                                                 Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                                                                 Location Filter=FIELD(Location Filter),
+                                                                 Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                                                                 Variant Filter=FIELD(Variant Filter) }
+                                                   { ID=1000000095;
+                                                     MenuItemType=Separator }
+                                                   { ID=1000000096;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=&Units of Measure;
+                                                                RUS=&Единицы Измерения];
+                                                     RunObject=Form 5404;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=Item No.=FIELD(No.) }
+                                                   { ID=1000000097;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Va&riants;
+                                                                RUS=Ва&рианты];
+                                                     RunObject=Form 5401;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=Item No.=FIELD(No.) }
+                                                   { ID=1000000098;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Cross Re&ferences;
+                                                                RUS=Перекрестные Ссы&лки];
+                                                     RunObject=Form 5721;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=Item No.=FIELD(No.),
+                                                                 Variant Code=FIELD(Temp Code) }
+                                                   { ID=1000000101;
+                                                     MenuItemType=Separator }
+                                                   { ID=1000000102;
+                                                     CaptionML=[ENU=Assembly &List;
+                                                                RUS=Сборочный &Лист] }
+                                                   { ID=1000000103;
+                                                     PushAction=RunObject;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=Bill of Materials;
+                                                                RUS=Комплект];
+                                                     RunObject=Form 36;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormLink=Parent Item No.=FIELD(No.),
+                                                                 Variant Code=FIELD(Temp Code) }
+                                                   { ID=1000000104;
+                                                     PushAction=RunObject;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=Where-Used List;
+                                                                RUS=Где-Используется Список];
+                                                     RunObject=Form 37;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Type,No.);
+                                                     RunFormLink=Type=CONST(Item),
+                                                                 No.=FIELD(No.),
+                                                                 Variant Code=FIELD(Temp Code) }
+                                                   { ID=1000000105;
+                                                     MenuLevel=1;
+                                                     CaptionML=[ENU=Calc. Stan&dard Cost;
+                                                                RUS=Расчет С&танд. Себестоимости];
+                                                     OnPush=BEGIN
+                                                              CalculateStdCost.CalcItem("No.",TRUE);
+                                                            END;
+                                                             }
+                                                   { ID=1000000106;
+                                                     MenuItemType=Separator;
+                                                     CaptionML=[ENU="";
+                                                                RUS=""] }
+                                                   { ID=1000000107;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Identifiers;
+                                                                RUS=Идентификаторы];
+                                                     RunObject=Form 7706;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Item No.,Variant Code,Unit of Measure Code);
+                                                     RunFormLink=Item No.=FIELD(No.),
+                                                                 Variant Code=FIELD(Temp Code) }
+                                                   { ID=1000000108;
+                                                     Visible=No }
+                                                 }
+                                                  }
+    { 1000000076;MenuButton;14190;7150;2200;550 ;Name=ButVar2;
+                                                 HorzGlue=Right;
+                                                 VertGlue=Bottom;
+                                                 CaptionML=[ENU=S&ales;
+                                                            RUS=Про&дажи];
+                                                 Menu=MENUITEMS
+                                                 {
+                                                   { ID=1000000109;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Prices;
+                                                                RUS=Цены];
+                                                     RunObject=Form 7002;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Item No.);
+                                                     RunFormLink=Item No.=FIELD(No.) }
+                                                   { ID=1000000110;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Line Discounts;
+                                                                RUS=Скидки Строки];
+                                                     RunObject=Form 7004;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Type,Code);
+                                                     RunFormLink=Type=CONST(Item),
+                                                                 Code=FIELD(No.) }
+                                                   { ID=1000000111;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Orders;
+                                                                RUS=Заказы];
+                                                     RunObject=Form 48;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Document Type,Type,No.);
+                                                     RunFormLink=Type=CONST(Item),
+                                                                 No.=FIELD(No.),
+                                                                 Variant Code=FIELD(Temp Code) }
+                                                   { ID=1000000112;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Returns Orders;
+                                                                RUS=Возвраты];
+                                                     RunObject=Form 6633;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Document Type,Type,No.);
+                                                     RunFormLink=Type=CONST(Item),
+                                                                 No.=FIELD(No.),
+                                                                 Variant Code=FIELD(Temp Code) }
+                                                   { ID=1000000113;
+                                                     MenuItemType=Separator }
+                                                   { ID=1000000114;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Shipping Agent;
+                                                                RUS=Агенты по Доставке];
+                                                     RunObject=Form 50009;
+                                                     RunFormLink=Item No.=FIELD(No.) }
+                                                   { ID=1000000092;
+                                                     MenuItemType=Separator }
+                                                   { ID=1000000094;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Print Price-list;
+                                                                RUS=Печать Прайса];
+                                                     RunObject=Report 50001 }
+                                                 }
+                                                  }
+    { 1000000077;MenuButton;16610;7150;2200;550 ;Name=ButVar3;
+                                                 HorzGlue=Right;
+                                                 VertGlue=Bottom;
+                                                 CaptionML=[ENU=&Purchases;
+                                                            RUS=&Покупки];
+                                                 Menu=MENUITEMS
+                                                 {
+                                                   { ID=1000000115;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Ven&dors;
+                                                                RUS=Пос&тавщики];
+                                                     RunObject=Form 114;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Item No.);
+                                                     RunFormLink=Item No.=FIELD(No.) }
+                                                   { ID=1000000116;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Prices;
+                                                                RUS=Цены];
+                                                     RunObject=Form 7012;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Item No.);
+                                                     RunFormLink=Item No.=FIELD(No.) }
+                                                   { ID=1000000117;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Line Discounts;
+                                                                RUS=Скидки Строки];
+                                                     RunObject=Form 7014;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Item No.);
+                                                     RunFormLink=Item No.=FIELD(No.) }
+                                                   { ID=1000000118;
+                                                     MenuItemType=Separator }
+                                                   { ID=1000000119;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Orders;
+                                                                RUS=Заказы];
+                                                     RunObject=Form 56;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Document Type,Type,No.);
+                                                     RunFormLink=Type=CONST(Item),
+                                                                 No.=FIELD(No.),
+                                                                 Variant Code=FIELD(Temp Code) }
+                                                   { ID=1000000120;
+                                                     PushAction=RunObject;
+                                                     CaptionML=[ENU=Return Orders;
+                                                                RUS=Возвраты];
+                                                     RunObject=Form 6643;
+                                                     RunFormLinkType=OnUpdate;
+                                                     RunFormView=SORTING(Document Type,Type,No.);
+                                                     RunFormLink=Type=CONST(Item),
+                                                                 No.=FIELD(No.),
+                                                                 Variant Code=FIELD(Temp Code) }
+                                                 }
+                                                  }
+    { 1000000099;CommandButton;220;7150;2200;550;VertGlue=Bottom;
+                                                 CaptionML=[ENU=Refresh;
+                                                            RUS=Обновить];
+                                                 OnPush=BEGIN
+                                                          InitForm;
+                                                        END;
+                                                         }
+    { 1101489006;CommandButton;2640;7150;2200;550;
+                                                 Name=OpenVariants;
+                                                 VertGlue=Bottom;
+                                                 CaptionML=[ENU=Expand;
+                                                            RUS=Раскрыть];
+                                                 OnPush=BEGIN
+
+                                                          OpenAllVariants;
+                                                        END;
+                                                         }
+  }
+  CODE
+  {
+    VAR
+      Item@1000000009 : Record 27;
+      dlg@1000000010 : Dialog;
+      CalculateStdCost@1000000000 : Codeunit 5812;
+      PrintInPrice@1000000001 : Boolean;
+      PrintInPriceEn@1000000003 : Boolean;
+      ItemVariant@1000000002 : Record 5401;
+      ItemTranslation@1000000004 : Record 30;
+      UnMgt@1000000005 : Codeunit 50112;
+      Text001@1000000006 : TextConst 'ENU=Creating Items List;RUS=Формирую список товаров';
+      BarcodeMgt@1000000007 : Codeunit 50116;
+
+    PROCEDURE UpdateVariantLines@1000000011();
+    VAR
+      ItemVariant2@1000000000 : Record 5401;
+      CurrItem@1000000001 : Code[20];
+    BEGIN
+      CurrItem := "No.";
+
+      CASE "Temp Int" OF
+
+        0 : BEGIN
+
+        Rec.SETVIEW('');
+        "Temp Int" := 1;
+        MODIFY;
+        ItemVariant2.RESET;
+        ItemVariant2.SETRANGE("Item No.","No.");
+        IF ItemVariant2.FINDSET THEN
+          REPEAT
+            Rec.INIT;
+            Rec."No." := ItemVariant2."Item No.";
+
+            Rec."Temp Code" := ItemVariant2.Code;
+            Rec."Description 3" := ItemVariant2.Description + ItemVariant2."Description 2";
+            Rec."Temp Int" := 2;
+            Rec."1C ID":=ItemVariant2."1C ID";
+            Rec.INSERT;
+          UNTIL ItemVariant2.NEXT = 0;
+
+        END;
+
+        1 : BEGIN
+
+          "Temp Int" := 0;
+          MODIFY;
+          Rec.SETRANGE("No.","No.");
+          Rec.SETFILTER("Temp Code",'<>%1','');
+          Rec.DELETEALL;
+          Rec.SETRANGE("No.");
+          Rec.SETRANGE("Temp Code");
+
+        END;
+
+      END;
+      IF GET(CurrItem) THEN ;
+      CurrForm.UPDATE(FALSE);
+    END;
+
+    PROCEDURE UpdateControls@1000000014();
+    BEGIN
+      IF "Temp Code" = '' THEN BEGIN
+        CurrForm.ButIt1.VISIBLE := TRUE;
+        CurrForm.ButIt2.VISIBLE := TRUE;
+        CurrForm.ButIt3.VISIBLE := TRUE;
+        CurrForm.ButVar1.VISIBLE := FALSE;
+        CurrForm.ButVar2.VISIBLE := FALSE;
+        CurrForm.ButVar3.VISIBLE := FALSE;
+      END ELSE BEGIN
+        CurrForm.ButIt1.VISIBLE := FALSE;
+        CurrForm.ButIt2.VISIBLE := FALSE;
+        CurrForm.ButIt3.VISIBLE := FALSE;
+        CurrForm.ButVar1.VISIBLE := TRUE;
+        CurrForm.ButVar2.VISIBLE := TRUE;
+        CurrForm.ButVar3.VISIBLE := TRUE;
+      END;
+      CurrForm.UPDATECONTROLS;
+    END;
+
+    PROCEDURE InitForm@1000000000();
+    VAR
+      SearchFilter@1101489000 : Integer;
+      sch@1000000000 : Integer;
+      totalcount@1000000001 : Integer;
+    BEGIN
+      dlg.OPEN('#1################################\'+
+               '@2@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+
+      // DP >>
+      // Item.SETVIEW(GETVIEW);   DP не всегда корреткно работает
+        Item.COPYFILTERS(Rec);
+      // DP <<
+
+      Item.SETRANGE(Blocked, FALSE);
+      totalcount:=Item.COUNT;
+
+      IF Item.FINDSET THEN BEGIN
+        RESET;
+        DELETEALL;
+        REPEAT
+          Update(Text001,sch,totalcount);
+          sch+=1;
+          Rec := Item;
+          // DP >>
+          IF NOT UnMgt.ManyVariantsExist("No.") THEN BEGIN
+            Rec."Temp Int" := 2;
+            "Temp Code":=UnMgt.GetSingleVariant("No.");
+          END;
+          // DP <<
+          Rec.INSERT;
+
+        UNTIL Item.NEXT = 0;
+        FIND('-');
+      END;
+      dlg.CLOSE;
+    END;
+
+    PROCEDURE Update@1000000003(pDesc@1000000000 : Text[50];pCounter@1000000001 : Integer;pTotal@1000000002 : Integer);
+    BEGIN
+
+      dlg.UPDATE(1,pDesc);
+
+      dlg.UPDATE(2,ROUND(pCounter/pTotal*10000,1));
+    END;
+
+    PROCEDURE OpenAllVariants@1000000001();
+    VAR
+      CurrItem@1000000001 : Code[20];
+      ItemVariant2@1000000000 : Record 5401;
+    BEGIN
+      //InitForm;
+      CurrItem := "No.";
+
+      IF FINDSET  THEN
+        REPEAT
+          IF (("Temp Int" = 0) AND UnMgt.ManyVariantsExist("No.")) THEN BEGIN
+            "Temp Int" := 1;
+            MODIFY;
+
+            ItemVariant2.RESET;
+            ItemVariant2.SETRANGE("Item No.","No.");
+            ItemVariant2.FIND('-');
+            REPEAT
+              Rec.INIT;
+              Rec."No." := ItemVariant2."Item No.";
+              Rec."Temp Code" := ItemVariant2.Code;
+              Rec."Description 3" := ItemVariant2.Description + ItemVariant2."Description 2";
+              Rec."Temp Int" := 2;
+              Rec."1C ID":=ItemVariant2."1C ID";
+              Rec.INSERT;
+            UNTIL ItemVariant2.NEXT = 0;
+          END;
+      UNTIL NEXT =0;
+
+      IF GET(CurrItem) THEN ;
+      CurrForm.UPDATE(FALSE);
+    END;
+
+    PROCEDURE GetVolume@1000000008() Result : Text[30];
+    VAR
+      Height@1000000000 : Decimal;
+      Length@1000000001 : Decimal;
+      Width@1000000002 : Decimal;
+      ItemDim@1000000003 : Record 50058;
+      FactWeight@1000000004 : Decimal;
+      SiteWeight@1000000005 : Decimal;
+    BEGIN
+
+      Length:=ItemDim.GetDimDecValue("No.","Temp Code",'LENGTH');
+      Length+=ItemDim.GetDimDecValue("No.",'','LENGTH');
+
+
+      Width:=ItemDim.GetDimDecValue("No.","Temp Code",'WIDTH');
+      Width+=ItemDim.GetDimDecValue("No.",'','WIDTH');
+
+      Height:=ItemDim.GetDimDecValue("No.","Temp Code",'HEIGHT');
+      Height+=ItemDim.GetDimDecValue("No.",'','HEIGHT');
+
+
+
+      IF Length>0 THEN
+        Result:=FORMAT(Length);
+
+      IF Width>0 THEN
+        IF Result='' THEN
+          Result:=FORMAT(Width)
+        ELSE
+         Result+='x'+FORMAT(Width);
+
+
+      IF Height>0 THEN
+        IF Result='' THEN
+          Result:=FORMAT(Height)
+        ELSE
+         Result+='x'+FORMAT(Height);
+    END;
+
+    PROCEDURE GetWeight@1000000009() Result : Text[30];
+    VAR
+      Height@1000000000 : Decimal;
+      Length@1000000001 : Decimal;
+      Width@1000000002 : Decimal;
+      ItemDim@1000000003 : Record 50058;
+      FactWeight@1000000004 : Decimal;
+      SiteWeight@1000000005 : Decimal;
+    BEGIN
+
+      FactWeight:=ItemDim.GetDimDecValue("No.","Temp Code",'FACTWEIGHT');
+      FactWeight+=ItemDim.GetDimDecValue("No.",'','FACTWEIGHT');
+
+      IF FactWeight>0 THEN
+        Result:=FORMAT(FactWeight);
+
+
+      SiteWeight:=ItemDim.GetDimDecValue("No.","Temp Code",'SITEWEIGHT');
+      SiteWeight+=ItemDim.GetDimDecValue("No.",'','SITEWEIGHT');
+
+      IF SiteWeight>0 THEN
+        IF Result='' THEN
+          Result:=FORMAT(SiteWeight)
+        ELSE
+         Result+='/'+FORMAT(SiteWeight);
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
