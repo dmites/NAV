@@ -1,0 +1,205 @@
+OBJECT Codeunit 50178 Logic Filter
+{
+  OBJECT-PROPERTIES
+  {
+    Date=27.11.12;
+    Time=13:37:16;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    OnRun=VAR
+            FirstFilter@1101981000 : Text[1024];
+            ResultFilter@1101981001 : Text[1024];
+          BEGIN
+
+            FirstFilter:='1|2|3|5|6|7|9';
+            ResultFilter:=GetFilterByString(FirstFilter,'|');
+
+
+            MESSAGE('%1 -> %2',FirstFilter,ResultFilter);
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      FilterBuf@1101981000 : TEMPORARY Record 18;
+      FilterBufCount@1101981003 : Integer;
+      MaxLen@1101981002 : Integer;
+      MinLen@1101981001 : Integer;
+
+    PROCEDURE Word@1000000028(Str@1000000001 : Text[1024];StrNo@1000000002 : Integer;Sep@1000000000 : Text[1]) : Text[1024];
+    VAR
+      i@1000000003 : Integer;
+      Str2@1000000004 : Text[1024];
+      wc@1000000005 : Integer;
+    BEGIN
+      //Word
+
+      Str += Sep;
+      Str2 := '';
+      wc := 0;
+      FOR i := 1 TO STRLEN(Str) DO BEGIN
+        IF FORMAT(Str[i]) = Sep THEN
+          wc += 1
+        ELSE
+          IF wc = StrNo - 1 THEN
+            Str2 += FORMAT(Str[i])
+      END;
+      EXIT(Str2);
+    END;
+
+    PROCEDURE WordCount@1000000029(Str@1000000000 : Text[1024];Sep@1000000001 : Text[1]) : Integer;
+    VAR
+      i@1000000002 : Integer;
+      wc@1000000003 : Integer;
+    BEGIN
+      //WordCount
+
+      Str += Sep;
+      wc := 0;
+      FOR i := 1 TO STRLEN(Str) DO
+        IF FORMAT(Str[i]) = Sep THEN
+          wc += 1;
+      EXIT(wc);
+    END;
+
+    PROCEDURE GetFilterByString@1000000080(Str@1000000002 : Text[1024];Sep@1000000000 : Text[1]) : Text[1024];
+    VAR
+      i@1000000003 : Integer;
+      CurWord@1000000001 : Text[255];
+    BEGIN
+      //WordSorting
+      // построение фильтра Navision из строки Str с разделетелем Sep
+
+      ClearFilterBuf;
+
+      FOR i := 1 TO WordCount(Str,Sep) DO BEGIN
+        CurWord := Word(Str,i,Sep);
+        AddFilterBuf(CurWord);
+      END;
+
+      EXIT(CreateFilterString);
+    END;
+
+    PROCEDURE ClearFilterBuf@1000000083();
+    BEGIN
+      FilterBuf.RESET;
+      FilterBuf.DELETEALL;
+      MinLen := 1;
+      MaxLen := 0;
+      FilterBufCount := 0;
+    END;
+
+    PROCEDURE AddFilterBuf@1000000081(NewVal@1000000000 : Text[255]);
+    BEGIN
+      FilterBuf.RESET;
+      FilterBuf.SETRANGE(Name,NewVal);
+      IF NOT FilterBuf.FINDFIRST THEN BEGIN
+        FilterBufCount += 1;
+        FilterBuf.INIT;
+        FilterBuf."No." := FORMAT(FilterBufCount);
+        FilterBuf.Name := NewVal;
+        FilterBuf.INSERT;
+
+        IF MinLen > STRLEN(FilterBuf.Name) THEN
+          MinLen := STRLEN(FilterBuf.Name);
+
+        IF MaxLen < STRLEN(FilterBuf.Name) THEN
+          MaxLen := STRLEN(FilterBuf.Name);
+
+      END;
+    END;
+
+    PROCEDURE CreateFilterString@1000000088() FilterString : Text[1024];
+    VAR
+      i@1000000000 : Integer;
+      CurFilter@1000000001 : Text[30];
+      FirstElement@1000000002 : Text[30];
+      EndElement@1000000005 : Text[30];
+      j@1000000003 : Integer;
+      k@1000000004 : Integer;
+      ni@1000000006 : Integer;
+      CurLen@1000000007 : Integer;
+      FilterStringMasCount@1101981000 : Integer;
+      FilterStringMas@1101981001 : ARRAY [1000] OF Text[30];
+    BEGIN
+      //CreateFilterString
+      // построение фильтра Navision из массива FilterStringMas
+
+      FilterString := '';
+
+      FilterBuf.RESET;
+      IF NOT FilterBuf.FINDFIRST THEN
+        EXIT;
+
+      // заполнение массива с сортировкой под длине и алфавиту
+      FilterStringMasCount := 0;
+      CLEAR(FilterStringMas);
+      i := 0;
+      FOR CurLen := MinLen TO MaxLen DO BEGIN
+        FilterBuf.RESET;
+        FilterBuf.SETCURRENTKEY(Name);
+        IF FilterBuf.FIND('-') THEN
+          REPEAT
+            IF STRLEN(FilterBuf.Name) = CurLen THEN BEGIN
+              i += 1;
+              FilterStringMas[i] := FilterBuf.Name;
+            END;
+          UNTIL FilterBuf.NEXT = 0;
+      END;
+      FilterStringMasCount := i;
+
+
+      FOR i := 1 TO FilterStringMasCount DO BEGIN
+
+        CurFilter := FilterStringMas[i];
+
+        IF i + 2 <= FilterStringMasCount THEN BEGIN
+
+          //MESSAGE('%1([i]+2) = %2([i+2])',IncrementValue(FilterStringMas[i],2),FilterStringMas[i + 2]);
+
+          IF (IncrementValue(FilterStringMas[i],1) = FilterStringMas[i + 1]) AND
+             (IncrementValue(FilterStringMas[i],2) = FilterStringMas[i + 2]) THEN BEGIN
+
+            FirstElement := FilterStringMas[i];
+            k := 1;
+            ni := FilterStringMasCount;
+            FOR j := i + 1 TO FilterStringMasCount DO BEGIN
+              IF IncrementValue(FilterStringMas[i], k) = FilterStringMas[j] THEN
+                EndElement := FilterStringMas[j]
+              ELSE BEGIN
+                ni := j - 1;
+                j := FilterStringMasCount;
+              END;
+              k += 1;
+            END;
+            i := ni;
+            CurFilter := FirstElement + '..' + EndElement;
+          END;
+        END;
+
+        IF FilterString <> '' THEN
+          FilterString += '|';
+
+        FilterString += CurFilter;
+
+      END;
+    END;
+
+    PROCEDURE IncrementValue@1000000103(ValueL@1000000000 : Text[30];Step@1000000001 : Integer) : Text[30];
+    VAR
+      j@1000000002 : Integer;
+    BEGIN
+      FOR j := 1 TO Step DO
+        ValueL := INCSTR(ValueL);
+      EXIT(ValueL);
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
