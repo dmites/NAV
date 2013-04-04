@@ -1,0 +1,136 @@
+OBJECT Codeunit 50196 Ean
+{
+  OBJECT-PROPERTIES
+  {
+    Date=04.04.13;
+    Time=16:33:43;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+
+    PROCEDURE Ean13@1000000021(ean@1000000000 : Text[13]) barcodeean@1000000009 : Text[13];
+    VAR
+      FirstFlag@1000000001 : Text[30];
+      Left@1000000002 : Text[30];
+      Right@1000000003 : Text[30];
+      pre@1000000004 : Text[30];
+      LeftCode@1000000005 : Text[30];
+      RightCode@1000000006 : Text[30];
+      i@1000000008 : Integer;
+      First@1000000007 : Text[30];
+    BEGIN
+
+      IF (ean = '') THEN
+        EXIT;
+
+      {IF STRLEN(ean) < 13 THEN BEGIN
+        ean := COPYSTR('0000000000000', 1, 13-STRLEN(ean)) + ean;
+      END;
+
+      IF (STRLEN(ean) <> 13) THEN
+        ERROR('EAN %1 некорректен', ean);}
+
+      CLEAR(barcodeean);
+      FirstFlag:=COPYSTR(ean,1,1);
+      Left:=COPYSTR(ean,2,6);
+      Right:=COPYSTR(ean,8,6);
+      LeftCode:='';
+      RightCode:='';
+      FOR i:=1 TO STRLEN(Right) DO
+       BEGIN
+        RightCode:=RightCode+ToLowerChar(COPYSTR(Right,i,1));
+       END;
+      CASE FirstFlag OF
+       '0':
+        BEGIN
+         First:='#!';
+         pre:='AAAAAA';
+        END;
+       '1':
+        BEGIN
+         First:='$!';
+         pre:='AABABB';
+        END;
+       '2':
+        BEGIN
+         First:='%!';
+         pre:='AABBAB';
+        END;
+        '3':
+        BEGIN
+         First:='&!';
+         pre:='AABBBA';
+        END;
+         '4':
+        BEGIN
+         First:='''!';
+         pre:='ABAABB';
+        END;
+       '5':
+        BEGIN
+         First:='(!';
+         pre:='ABBAAB';
+        END;
+       '6':
+        BEGIN
+         First:=')!';
+         pre:='ABBBAA';
+        END;
+       '7':
+        BEGIN
+         First:='*!';
+         pre:='ABABAB';
+        END;
+       '8':
+        BEGIN
+         First:='+!';
+         pre:='ABABBA';
+        END;
+       '9':
+        BEGIN
+         First:=',!';
+         pre:='ABBABA';
+        END;
+      END;
+      FOR i:=1 TO STRLEN(Left) DO
+       BEGIN
+        IF pre[i]='A' THEN LeftCode:=LeftCode+COPYSTR(Left,i,1)
+         ELSE LeftCode:=LeftCode+ToUpperChar(COPYSTR(Left,i,1));
+       END;
+
+      barcodeean:=First+LeftCode+'-'+RightCode+'!';
+    END;
+
+    PROCEDURE ToLowerChar@1000000020(d@1000000000 : Text[30]) res@1000000003 : Text[30];
+    VAR
+      CharSet@1000000001 : Text[30];
+      p@1000000002 : Integer;
+    BEGIN
+      CharSet:='abcdefghij';
+      EVALUATE(p,d);
+      res:=COPYSTR(CharSet,p+1,1);
+    END;
+
+    PROCEDURE ToUpperChar@1000000019(d@1000000000 : Text[30]) res@1000000003 : Text[30];
+    VAR
+      CharSet@1000000002 : Text[30];
+      p@1000000001 : Integer;
+    BEGIN
+      CharSet:='ABCDEFGHIJ';
+      EVALUATE(p,d);
+      res:=COPYSTR(CharSet,p+1,1);
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
